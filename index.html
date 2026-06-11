@@ -1529,6 +1529,16 @@ html+='<button class="btn btn-outline btn-sm" onclick="removePrize('+p.id+')" st
 html+='</div>';
 });
 container.innerHTML=html;
+// 修正舍入误差：确保显示的总概率=100
+if(totalWeight!==100&&PRIZES.length>0){
+  // 找到权重最大的奖品修正
+  let maxP=PRIZES[0],maxW=0;
+  PRIZES.forEach(function(p){if((probs?p[p.id]:10)>maxW){maxW=probs?p[p.id]:10;maxP=p}});
+  const diff=100-totalWeight;
+  probs[maxP.id]=Math.max(0,(probs[maxP.id]||0)+diff);
+  totalWeight=100;
+  savePrizeProb(probs);
+}
 updateProbStatus(totalWeight);
 }
 
