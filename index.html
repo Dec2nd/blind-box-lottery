@@ -398,7 +398,7 @@ const WHITELIST_ENABLED_KEY='suihua_whitelist_enabled';
 const WEBCONFIG_KEY='suihua_webhook';
 const LOTTERY_TIME_KEY='suihua_lottery_time';
 const PRIZE_PROB_KEY='suihua_prize_prob';
-const WEBHOOK_URL='https://qyapi.weixin.qq.com/cgi-bin/wedoc/smartsheet/webhook?key=6MTDj5drErcoARrxBOasHnvODITbyOjJwuzAXYz3kE7ogRBLnXMUs3mJ8fVmwp75HuMPscQDCW2Hg9ZkJZBDm30IzHhMRJHXgB5NhFFU0wxw';
+// Webhook URL 由用户在管理后台配置，不再硬编码
 
 // ========== 数据操作 ==========
 function loadData(){try{const raw=localStorage.getItem(STORAGE_KEY);return raw?JSON.parse(raw):{records:[],champion:''}}catch(e){return{records:[],champion:''}}}
@@ -939,10 +939,26 @@ const wh=loadWebhook();const url=wh.url||document.getElementById('webhookUrl').v
 if(!url){showToast('⚠️ 请先填写Webhook地址');return}
 const el=document.getElementById('webhookStatus');if(el){el.textContent='🔄 测试中...';el.style.color='#ffd700'}
 try{
-const resp=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({add_records:[{values:{}}]})});
-const result=await resp.json();
-if(result.errcode===0){if(el){el.textContent='✅ 测试成功！';el.style.color='#81c784'}showToast('✅ 连接成功')}
-else{if(el){el.textContent='⚠️ 连接成功但需字段名匹配（errcode:'+result.errcode+'）';el.style.color='#e76f51'}showToast('⚠️ 需先创建表格列')}
+// 通过 Worker 代理转发，避免前端 CORS 问题
+const resp=await fetch(API_BASE+'/api/webhook',{
+  method:'POST',
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({
+    webhookUrl:url,
+    payload:{add_records:[{values:{}}]}
+  })
+});
+const data=await resp.json();
+if(data.success&&data.result&&data.result.errcode===0){
+  if(el){el.textContent='✅ 测试成功！';el.style.color='#81c784'}
+  showToast('✅ 连接成功')
+}else if(data.success){
+  if(el){el.textContent='⚠️ 连接成功但需字段名匹配（errcode:'+(data.result?data.result.errcode:'unknown')+'）';el.style.color='#e76f51'}
+  showToast('⚠️ 需先创建表格列')
+}else{
+  if(el){el.textContent='❌ 连接失败: '+(data.error||'未知错误');el.style.color='#e76f51'}
+  showToast('❌ 连接失败')
+}
 }catch(e){if(el){el.textContent='❌ 连接失败: '+e.message;el.style.color='#e76f51'}showToast('❌ 连接失败')}
 }
 
@@ -951,8 +967,17 @@ const wh=loadWebhook();if(!wh.enabled||!wh.url)return false;
 const prize=PRIZES.find(function(p){return p.id===record.prizeId});
 const payload={add_records:[{values:{'内容':[{type:'text',text:'姓名:'+record.name+'|手机:'+record.phone+'|部门:'+record.dept+'|奖品:'+(prize?prize.name:'-')+'|时间:'+record.time}]}}]};
 try{
-const resp=await fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-return resp.ok;
+// 通过 Worker 代理转发，避免前端 CORS 问题
+const resp=await fetch(API_BASE+'/api/webhook',{
+  method:'POST',
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({
+    webhookUrl:wh.url,
+    payload:payload
+  })
+});
+const data=await resp.json();
+return data.success&&data.result&&data.result.errcode===0;
 }catch(e){console.error(e);return false}
 }
 
