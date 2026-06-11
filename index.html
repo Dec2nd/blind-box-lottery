@@ -107,11 +107,15 @@ animation:subtitle-breathe 3s ease-in-out infinite;
 .card .desc.small{font-size:12px}
 .card .desc.rule-list{line-height:2}
 .card .desc.rule-list br{display:block;margin:4px 0;content:''}
+.card.enter-up{animation:cardEnterUp .6s cubic-bezier(.4,0,.2,1) both}
+.card.enter-up:nth-child(2){animation-delay:.1s}
+.card.enter-up:nth-child(3){animation-delay:.2s}
+@keyframes cardEnterUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
 .input-group{margin-bottom:16px}
 .input-group label{display:block;font-size:13px;color:rgba(255,255,255,.7);margin-bottom:8px}
 .input-group input,.input-group textarea,.input-group select{width:100%;padding:14px 16px;border:1px solid rgba(255,255,255,.2);border-radius:12px;background:rgba(255,255,255,.06);color:#fff;font-size:16px;outline:none;transition:all .3s;font-family:inherit}
 .input-group textarea{min-height:120px;resize:vertical}
-.input-group input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(244,162,97,.2)}
+.input-group input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(244,162,97,.2),0 0 20px rgba(244,162,97,.15)}
 .input-group input::placeholder{color:rgba(255,255,255,.3)}
 .btn{width:100%;padding:15px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;transition:all .3s;position:relative;overflow:hidden}
 .btn:active{transform:scale(.98)}
@@ -260,6 +264,12 @@ animation:subtitle-breathe 3s ease-in-out infinite;
 </style>
 </head>
 <body>
+<!-- 静态彩纸 -->
+<div class="paper-confetti" style="left:10%;width:10px;height:10px;background:#ffd700;animation-duration:12s;animation-delay:0s"></div>
+<div class="paper-confetti" style="left:25%;width:8px;height:12px;background:#e63946;animation-duration:15s;animation-delay:2s"></div>
+<div class="paper-confetti" style="left:50%;width:12px;height:8px;background:#f4a261;animation-duration:10s;animation-delay:4s"></div>
+<div class="paper-confetti" style="left:75%;width:10px;height:10px;background:#2a9d8f;animation-duration:14s;animation-delay:1s"></div>
+<div class="paper-confetti" style="left:90%;width:8px;height:12px;background:#e76f51;animation-duration:11s;animation-delay:3s"></div>
 <!-- 红包雨 -->
 <div id="redEnvelopeContainer"></div>
 <!-- 粒子背景 -->
@@ -304,7 +314,7 @@ animation:subtitle-breathe 3s ease-in-out infinite;
       <div class="cd-status" id="countdownStatus">抽奖进行中</div>
     </div>
 
-    <div class="card" id="homeVerifyCard">
+    <div class="card enter-up" id="homeVerifyCard">
       <h2 id="homeVerifyTitle">📱 员工身份验证</h2>
       <p class="desc" id="homeVerifyDesc">请输入姓名和手机号，验证身份后开启盲盒</p>
       <div class="input-group">
@@ -317,7 +327,7 @@ animation:subtitle-breathe 3s ease-in-out infinite;
       </div>
       <button class="btn btn-primary" onclick="handleVerify()">验证身份 & 开启盲盒</button>
     </div>
-    <div class="card" style="text-align:center" id="homeRuleCard">
+    <div class="card enter-up" style="text-align:center" id="homeRuleCard">
       <p class="desc" style="margin-bottom:8px" id="homeRuleTitle">📋 活动规则</p>
       <p class="desc small rule-list" id="homeRuleContent">猜中本周销冠的中奖员工可开启一次盲盒<br>盲盒内含10种特权福利，随机抽取<br>特权有效期30天，请截图分享到全员奋斗群</p>
     </div>
@@ -337,8 +347,8 @@ animation:subtitle-breathe 3s ease-in-out infinite;
 
   <!-- 已开奖 -->
   <div class="page" id="page-already">
-    <div class="card" style="text-align:center">
-      <div style="font-size:64px;margin-bottom:16px">📝</div>
+    <div class="card" style="text-align:center;animation:result-reveal .8s cubic-bezier(.68,-.55,.265,1.55) both">
+      <div style="font-size:64px;margin-bottom:16px;animation:notwin-emoji 2s ease-in-out infinite">📝</div>
       <h2 style="margin-bottom:12px">您已参与过开奖</h2>
       <p class="desc" id="alreadyInfo" style="margin-bottom:24px"></p>
       <button class="btn btn-primary" onclick="handleBack()">返回首页</button>
@@ -1082,6 +1092,11 @@ document.getElementById('resultDesc').innerHTML='<div class="desc-title">📖 �
 var now=new Date();
 var timeStr=now.getFullYear()+'年'+String(now.getMonth()+1).padStart(2,'0')+'月'+String(now.getDate()).padStart(2,'0')+'日 '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0');
 document.getElementById('resultTime').textContent=timeStr;
+// 数字递增动画
+const resultCard=document.getElementById('resultCard');
+resultCard.style.animation='none';
+resultCard.offsetHeight;
+resultCard.style.animation='result-reveal .8s cubic-bezier(.68,-.55,.265,1.55) forwards';
 showPage('result');
 }
 
@@ -1113,11 +1128,21 @@ fetch(API_BASE+'/api/health',{
 });
 }
 
+function animateNumber(el,target){
+  let current=0;
+  const step=Math.max(1,Math.ceil(target/20));
+  const timer=setInterval(function(){
+    current+=step;
+    if(current>=target){current=target;clearInterval(timer)}
+    el.textContent=current;
+  },30);
+}
+
 function updateAdminPanel(){
 const data=loadData();const whitelist=loadWhitelist();
-document.getElementById('statTotal').textContent=whitelist.length;
-document.getElementById('statWhitelist').textContent=loadWhitelistEnabled()?whitelist.length:0;
-document.getElementById('statUnbox').textContent=data.records.length;
+animateNumber(document.getElementById('statTotal'),whitelist.length);
+animateNumber(document.getElementById('statWhitelist'),loadWhitelistEnabled()?whitelist.length:0);
+animateNumber(document.getElementById('statUnbox'),data.records.length);
 renderWhitelistTable();
 // 先从云端加载记录，失败则用本地数据
 loadCloudRecords();
