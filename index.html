@@ -1532,42 +1532,25 @@ container.innerHTML=html;
 updateProbStatus(totalWeight);
 }
 
-// 调整某个奖品概率时，自动分配差值给其他奖品
-function handleProbChange(changedId,newVal){
+// 调整某个奖品概率时，仅更新当前输入框，不自动分配
+function handleProbChange(id,newVal){
 newVal=Math.max(0,Math.min(100,parseInt(newVal)||0));
-PRIZES=getPrizes();
+// 更新对应的数值输入框或滑块
+const numEl=document.getElementById('probNum'+id);
+const rangeEl=document.getElementById('probRange'+id);
+const valEl=document.getElementById('probVal'+id);
+if(numEl&&numEl!==document.activeElement) numEl.value=newVal;
+if(rangeEl&&rangeEl!==document.activeElement) rangeEl.value=newVal;
+if(valEl) valEl.textContent=newVal;
+// 重新计算总概率
 const probs=loadPrizeProb()||{};
-// 先计算当前除 changedId 外其他奖品的权重总和
-let otherTotal=0;
-PRIZES.forEach(function(p){if(p.id!==changedId){otherTotal+=(probs[p.id]||Math.floor(100/PRIZES.length))}});
-// 差值需要由其他奖品分担
-const diff=(probs[changedId]||Math.floor(100/PRIZES.length))-newVal;
-if(diff===0){probs[changedId]=newVal;savePrizeProb(probs);renderPrizeProbConfig();return}
-probs[changedId]=newVal;
-// 按比例分配差值给其他奖品
-const others=PRIZES.filter(function(p){return p.id!==changedId});
-if(others.length===0){savePrizeProb(probs);renderPrizeProbConfig();return}
-const otherWeights=others.map(function(p){return probs[p.id]||Math.floor(100/PRIZES.length)});
-const otherSum=otherWeights.reduce(function(a,b){return a+b},0);
-others.forEach(function(p,i){
-  if(otherSum>0){
-    const share=Math.round(diff*otherWeights[i]/otherSum);
-    probs[p.id]=Math.max(0,(probs[p.id]||Math.floor(100/PRIZES.length))-share);
-  }else{
-    probs[p.id]=Math.max(0,(probs[p.id]||Math.floor(100/PRIZES.length))-Math.round(diff/others.length));
-  }
+const PRIZES_LOCAL=getPrizes();
+let totalWeight=0;
+PRIZES_LOCAL.forEach(function(p){
+  if(p.id===id) totalWeight+=newVal;
+  else totalWeight+=(probs[p.id]!==undefined?probs[p.id]:Math.floor(100/PRIZES_LOCAL.length));
 });
-// 修正舍入误差，确保总和=100
-let total=0;PRIZES.forEach(function(p){total+=(probs[p.id]||0)});
-if(total!==100){
-  const fix=100-total;
-  // 找到权重最大的其他奖品来修正
-  let maxP=null,maxW=0;
-  others.forEach(function(p){if((probs[p.id]||0)>maxW){maxW=probs[p.id]||0;maxP=p}});
-  if(maxP){probs[maxP.id]=Math.max(0,maxW+fix)}
-}
-savePrizeProb(probs);
-renderPrizeProbConfig();
+updateProbStatus(totalWeight);
 }
 
 function updateProbStatus(totalWeight){
@@ -1588,11 +1571,11 @@ const val=parseInt(document.getElementById('probNum'+p.id).value)||0;
 probs[p.id]=val;
 totalWeight+=val;
 });
-if(totalWeight!==100){showToast('⚠️ 总概率必须为100%，当前为'+totalWeight+'%');return}
+if(totalWeight!==100){showToast('⚠️ 总概率必须为100%，当前为'+totalWeight+'%，请手动调整或使用"均分概率"按钮');return}
 if(PRIZES.length===0){showToast('⚠️ 至少需要1个奖品');return}
 savePrizeProb(probs);
 renderPrizeProbConfig();
-showToast('✅ 奖品概率已保存');
+showToast('✅ 奖品概率已保存并同步到云端');
 }
 
 function resetPrizeProb(){
