@@ -392,8 +392,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hira
 
     <div class="admin-actions">
       <button class="btn btn-outline" onclick="handleExportExcel()">📤 导出Excel</button>
+      <button class="btn btn-outline" onclick="syncAllSettingsToCloud()" style="border-color:rgba(76,175,80,.4);color:#81c784">☁️ 保存所有设置到云端</button>
       <button class="btn btn-outline" onclick="handleLogout()">🚪 退出后台</button>
     </div>
+    <div id="syncSettingsStatus" style="text-align:center;font-size:12px;color:rgba(255,255,255,.5);margin-top:8px"></div>
     <div class="footer">穗华口腔 · 11周年院庆</div>
     <div class="admin-link"><a onclick="handleAdminClick()">⚙️ 管理员入口</a></div>
   </div>
@@ -438,15 +440,43 @@ const PRIZE_PROB_KEY='suihua_prize_prob';
 function loadData(){try{const raw=localStorage.getItem(STORAGE_KEY);return raw?JSON.parse(raw):{records:[],champion:''}}catch(e){return{records:[],champion:''}}}
 function saveData(data){localStorage.setItem(STORAGE_KEY,JSON.stringify(data))}
 function loadWhitelist(){try{const raw=localStorage.getItem(WHITELIST_KEY);return raw?JSON.parse(raw):[]}catch(e){return[]}}
-function saveWhitelistData(data){localStorage.setItem(WHITELIST_KEY,JSON.stringify(data))}
+function saveWhitelistData(data){localStorage.setItem(WHITELIST_KEY,JSON.stringify(data));syncSettingToCloud('whitelist',data)}
 function loadWhitelistEnabled(){try{const raw=localStorage.getItem(WHITELIST_ENABLED_KEY);return raw==='true'}catch(e){return false}}
-function saveWhitelistEnabled(v){localStorage.setItem(WHITELIST_ENABLED_KEY,v?'true':'false')}
+function saveWhitelistEnabled(v){localStorage.setItem(WHITELIST_ENABLED_KEY,v?'true':'false');syncSettingToCloud('whitelist_enabled',v)}
 function loadWebhook(){try{const raw=localStorage.getItem(WEBCONFIG_KEY);return raw?JSON.parse(raw):{url:'',enabled:false}}catch(e){return{url:'',enabled:false}}}
-function saveWebhook(data){localStorage.setItem(WEBCONFIG_KEY,JSON.stringify(data))}
+function saveWebhook(data){localStorage.setItem(WEBCONFIG_KEY,JSON.stringify(data));syncSettingToCloud('webhook',data)}
 function loadLotteryTime(){try{const raw=localStorage.getItem(LOTTERY_TIME_KEY);return raw?JSON.parse(raw):{start:'',end:''}}catch(e){return{start:'',end:''}}}
-function saveLotteryTimeData(data){localStorage.setItem(LOTTERY_TIME_KEY,JSON.stringify(data))}
+function saveLotteryTimeData(data){localStorage.setItem(LOTTERY_TIME_KEY,JSON.stringify(data));syncSettingToCloud('lottery_time',data)}
 function loadPrizeProb(){try{const raw=localStorage.getItem(PRIZE_PROB_KEY);return raw?JSON.parse(raw):null}catch(e){return null}}
-function savePrizeProb(data){localStorage.setItem(PRIZE_PROB_KEY,JSON.stringify(data))}
+function savePrizeProb(data){localStorage.setItem(PRIZE_PROB_KEY,JSON.stringify(data));syncSettingToCloud('prize_prob',data)}
+function saveCustomPrizes(prizes){localStorage.setItem(CUSTOM_PRIZES_KEY,JSON.stringify(prizes));syncSettingToCloud('custom_prizes',prizes)}
+
+// ========== 云端配置同步 ==========
+function syncSettingToCloud(key,value){
+fetch(API_BASE+'/api/settings',{
+  method:'POST',
+  headers:{'Content-Type':'application/json','Authorization':'Bearer '+ADMIN_TOKEN},
+  body:JSON.stringify({key:key,value:value})
+}).catch(function(err){console.warn('配置同步到云端失败:',err)});
+}
+
+function loadCloudSettings(){
+return fetch(API_BASE+'/api/settings',{
+  headers:{'Authorization':'Bearer '+ADMIN_TOKEN}
+}).then(function(r){return r.json()}).then(function(data){
+  if(data.settings){
+    if(data.settings.whitelist){localStorage.setItem(WHITELIST_KEY,JSON.stringify(data.settings.whitelist))}
+    if(data.settings.whitelist_enabled!==undefined){localStorage.setItem(WHITELIST_ENABLED_KEY,data.settings.whitelist_enabled?'true':'false')}
+    if(data.settings.webhook){localStorage.setItem(WEBCONFIG_KEY,JSON.stringify(data.settings.webhook))}
+    if(data.settings.lottery_time){localStorage.setItem(LOTTERY_TIME_KEY,JSON.stringify(data.settings.lottery_time))}
+    if(data.settings.prize_prob){localStorage.setItem(PRIZE_PROB_KEY,JSON.stringify(data.settings.prize_prob))}
+    if(data.settings.custom_prizes){localStorage.setItem(CUSTOM_PRIZES_KEY,JSON.stringify(data.settings.custom_prizes));PRIZES=getPrizes()}
+    console.log('☁️ 已从云端同步配置');
+    return true;
+  }
+  return false;
+}).catch(function(err){console.warn('云端配置加载失败:',err);return false});
+}
 
 // ========== 手机号验证（修复BUG：支持所有号段） ==========
 function isValidPhone(phone){
@@ -1285,6 +1315,38 @@ showToast('✅ 已删除奖品：'+prize.name);
 
 function handleLogout(){showPage('verify');showToast('已退出管理后台')}
 
+// ========== 一键保存所有设置到云端 ==========
+async function syncAllSettingsToCloud(){
+const statusEl=document.getElementById('syncSettingsStatus');
+if(statusEl){statusEl.textContent='🔄 正在同步...';statusEl.style.color='#ffd700'}
+const settings=[
+  {key:'whitelist',value:loadWhitelist()},
+  {key:'whitelist_enabled',value:loadWhitelistEnabled()},
+  {key:'webhook',value:loadWebhook()},
+  {key:'lottery_time',value:loadLotteryTime()},
+  {key:'prize_prob',value:loadPrizeProb()},
+  {key:'custom_prizes',value:getPrizes()}
+];
+let success=0,fail=0;
+for(let i=0;i<settings.length;i++){
+  const s=settings[i];
+  try{
+    const resp=await fetch(API_BASE+'/api/settings',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+ADMIN_TOKEN},
+      body:JSON.stringify({key:s.key,value:s.value})
+    });
+    const data=await resp.json();
+    if(data.success){success++}else{fail++}
+  }catch(e){fail++;console.warn('同步失败:',s.key,e.message)}
+}
+if(statusEl){
+  if(fail===0){statusEl.textContent='✅ 所有设置已同步到云端';statusEl.style.color='#81c784'}
+  else{statusEl.textContent='⚠️ 同步完成：成功'+success+'项，失败'+fail+'项';statusEl.style.color='#e76f51'}
+}
+showToast(fail===0?'✅ 所有设置已同步到云端':'⚠️ 同步完成：成功'+success+'项，失败'+fail+'项');
+}
+
 // ========== 一键清空开奖记录 ==========
 function clearRecords(){
 if(!confirm('确定清空所有开奖记录？\n\n此操作不可撤销，所有员工将可以重新参与抽奖。\n白名单、时间设置、概率配置等其他设置不受影响。'))return;
@@ -1333,7 +1395,11 @@ fetch(API_BASE+'/api/records',{
 // 初始化
 initParticles();
 startCountdown();
-syncLocalWithCloud();
+// 先同步配置，再同步记录
+loadCloudSettings().then(function(){
+  syncLocalWithCloud();
+  startCountdown();
+});
 </script>
 </body>
 </html>
