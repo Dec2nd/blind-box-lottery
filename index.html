@@ -846,21 +846,21 @@ document.getElementById('adminPassword').addEventListener('keypress',function(e)
 
 function verifyAdmin(){
 const pwd=document.getElementById('adminPassword').value.trim();
-// 先从云端同步密码到 localStorage
-fetch(API_BASE+'/api/settings',{
-  headers:{'Content-Type':'application/json','Authorization':'Bearer '+ADMIN_TOKEN}
-}).then(function(r){return r.json()}).then(function(res){
-  if(res.settings&&res.settings.admin_token){
-    localStorage.setItem('admin_token',res.settings.admin_token);
-  }
-}).finally(function(){
-  // 再用密码验证
-  const savedToken=localStorage.getItem('admin_token');
-  if(savedToken&&pwd===savedToken){
+// 直接用密码向云端验证
+fetch(API_BASE+'/api/health',{
+  headers:{'Authorization':'Bearer '+pwd}
+}).then(function(r){
+  if(r.status===200){
+    // 验证通过
+    localStorage.setItem('admin_token',pwd);
     document.getElementById('adminModal').classList.remove('active');
     document.getElementById('adminPassword').value='';showPage('admin');updateAdminPanel();loadWebhookConfig();loadLotteryTimeConfig();renderPrizeProbConfig();loadHomeContentConfig();
     const cb=document.getElementById('whitelistEnabled');if(cb){cb.checked=loadWhitelistEnabled()}
-  }else{showToast('密码错误')}
+  }else{
+    showToast('密码错误');
+  }
+}).catch(function(){
+  showToast('密码错误');
 });
 }
 
