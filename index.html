@@ -322,8 +322,9 @@ animation:subtitle-breathe 3s ease-in-out infinite;
   <div class="page" id="page-notwin">
     <div class="card" style="text-align:center;animation:notwin-shake 2s ease-in-out infinite">
       <div style="font-size:64px;margin-bottom:16px;animation:notwin-emoji 1s ease-in-out infinite">😅</div>
-      <h2 style="margin-bottom:12px">很遗憾，您没有中奖</h2>
-      <p class="desc">您没有猜中本周销冠，再接再厉！</p>
+      <h2 style="margin-bottom:12px">很遗憾，您没有猜中销冠</h2>
+      <p class="desc" style="margin-bottom:4px">您没有猜中本周销冠，再接再厉！</p>
+      <p class="desc small" style="color:rgba(255,215,0,.6)">💡 请管理员公布本期销冠名单后再次尝试</p>
       <button class="btn btn-primary" onclick="handleBack()">返回首页</button>
     </div>
   </div>
@@ -363,7 +364,7 @@ animation:subtitle-breathe 3s ease-in-out infinite;
     <div class="result-section">
       <div class="result-card" id="resultCard">
         <div class="result-label">🎊 恭喜您获得的盲盒福利 🎊</div>
-        <div style="font-size:16px;color:var(--gold);font-weight:700;margin-bottom:8px" id="resultWinnerName"></div>
+        <div style="font-size:20px;font-weight:900;background:linear-gradient(135deg,var(--gold),#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:12px;letter-spacing:2px" id="resultWinnerName"></div>
         <div class="result-name" id="resultPrizeName"></div>
         <div class="result-icon" id="resultIcon"></div>
         <div class="result-desc" id="resultDesc"></div>
@@ -914,7 +915,7 @@ fetch(API_BASE+'/api/check',{
     var prizeName='';
     if(cloudData.record&&cloudData.record.prize_name) prizeName=cloudData.record.prize_name;
     else{var p=PRIZES.find(function(pp){return pp.id===cloudData.record.prize_id});if(p)prizeName=p.name}
-    document.getElementById('alreadyInfo').textContent='您已开过盲盒，获得：'+prizeName;
+    document.getElementById('alreadyInfo').innerHTML='🎁 您已开过盲盒<br>获得：<strong style="color:var(--gold)">'+prizeName+'</strong>';
     showPage('already');return;
   }
   // 再查本地缓存
@@ -922,7 +923,8 @@ fetch(API_BASE+'/api/check',{
   var records=data.records;
   var already=records.find(function(r){return r.phone===phone});
   if(already){
-    document.getElementById('alreadyInfo').textContent='您已开过盲盒，获得：'+(PRIZES.find(function(p){return p.id===already.prizeId})||{}).name;
+    var p2=PRIZES.find(function(p){return p.id===already.prizeId});
+    document.getElementById('alreadyInfo').innerHTML='🎁 您已开过盲盒<br>获得：<strong style="color:var(--gold)">'+(p2?p2.name:'未知奖品')+'</strong>';
     showPage('already');return;
   }
   currentUser={name:name,phone:phone,dept:'',prizeId:null};
@@ -935,7 +937,8 @@ fetch(API_BASE+'/api/check',{
   var records=data.records;
   var already=records.find(function(r){return r.phone===phone});
   if(already){
-    document.getElementById('alreadyInfo').textContent='您已开过盲盒，获得：'+(PRIZES.find(function(p){return p.id===already.prizeId})||{}).name;
+    var p3=PRIZES.find(function(p){return p.id===already.prizeId});
+    document.getElementById('alreadyInfo').innerHTML='🎁 您已开过盲盒<br>获得：<strong style="color:var(--gold)">'+(p3?p3.name:'未知奖品')+'</strong>';
     showPage('already');return;
   }
   currentUser={name:name,phone:phone,dept:'',prizeId:null};
@@ -1063,7 +1066,9 @@ document.getElementById('resultWinnerName').textContent='🎉 '+currentUser.name
 document.getElementById('resultPrizeName').textContent=prize.name;
 document.getElementById('resultIcon').textContent=prize.icon;
 document.getElementById('resultDesc').innerHTML='<div class="desc-title">📖 奖品内容与使用规则：</div>'+prize.desc.replace(/\n/g,'<br>');
-document.getElementById('resultTime').textContent=new Date().toLocaleString('zh-CN');
+var now=new Date();
+var timeStr=now.getFullYear()+'年'+String(now.getMonth()+1).padStart(2,'0')+'月'+String(now.getDate()).padStart(2,'0')+'日 '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0');
+document.getElementById('resultTime').textContent=timeStr;
 showPage('result');
 }
 
