@@ -264,6 +264,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hira
     </div>
 
     <div class="card">
+      <h2>🔑 安全管理</h2>
+      <p class="desc small">修改管理员登录密码（前端+云端同步）</p>
+      <div class="input-group">
+        <label>新管理密码</label>
+        <input type="password" id="newAdminPassword" placeholder="输入新密码">
+      </div>
+      <div class="input-group">
+        <label>确认新密码</label>
+        <input type="password" id="confirmAdminPassword" placeholder="再次输入新密码">
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="changeAdminPassword()">🔒 修改密码</button>
+      <div id="adminPasswordStatus" style="margin-top:12px;font-size:12px;color:rgba(255,255,255,.5)"></div>
+    </div>
+
+    <div class="card">
       <h2>📋 白名单管理</h2>
       <p class="desc small">手动添加、上传表格导入白名单</p>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
@@ -472,7 +487,7 @@ var PRIZES=getPrizes();
 const STORAGE_KEY='suihua_blindbox';
 const WHITELIST_KEY='suihua_whitelist';
 const API_BASE='https://freedrives.eu.org'; // Cloudflare Worker API
-const ADMIN_TOKEN='suihua2026';
+const ADMIN_TOKEN=localStorage.getItem('admin_token')||'';
 const WHITELIST_ENABLED_KEY='suihua_whitelist_enabled';
 const WEBCONFIG_KEY='suihua_webhook';
 const LOTTERY_TIME_KEY='suihua_lottery_time';
@@ -577,7 +592,7 @@ document.getElementById('cdDay').textContent='--';
 document.getElementById('cdHour').textContent='--';
 document.getElementById('cdMin').textContent='--';
 document.getElementById('cdSec').textContent='--';
-if(statusEl){statusEl.textContent='抽奖进行中（无时间限制）';statusEl.className='cd-status';}
+if(statusEl){statusEl.textContent='抽奖进行中';statusEl.className='cd-status';}
 if(titleEl)titleEl.textContent='⏰ 抽奖活动';
 return;
 }
@@ -831,11 +846,22 @@ document.getElementById('adminPassword').addEventListener('keypress',function(e)
 
 function verifyAdmin(){
 const pwd=document.getElementById('adminPassword').value.trim();
-if(pwd==='suihua2026'||pwd==='123456'){
-document.getElementById('adminModal').classList.remove('active');
-document.getElementById('adminPassword').value='';showPage('admin');updateAdminPanel();loadWebhookConfig();loadLotteryTimeConfig();renderPrizeProbConfig();loadHomeContentConfig();
-const cb=document.getElementById('whitelistEnabled');if(cb){cb.checked=loadWhitelistEnabled()}
-}else{showToast('密码错误')}
+// 先从云端同步密码到 localStorage
+fetch(API_BASE+'/api/settings',{
+  headers:{'Content-Type':'application/json','Authorization':'Bearer '+ADMIN_TOKEN}
+}).then(function(r){return r.json()}).then(function(res){
+  if(res.settings&&res.settings.admin_token){
+    localStorage.setItem('admin_token',res.settings.admin_token);
+  }
+}).finally(function(){
+  // 再用密码验证
+  const savedToken=localStorage.getItem('admin_token');
+  if(savedToken&&pwd===savedToken){
+    document.getElementById('adminModal').classList.remove('active');
+    document.getElementById('adminPassword').value='';showPage('admin');updateAdminPanel();loadWebhookConfig();loadLotteryTimeConfig();renderPrizeProbConfig();loadHomeContentConfig();
+    const cb=document.getElementById('whitelistEnabled');if(cb){cb.checked=loadWhitelistEnabled()}
+  }else{showToast('密码错误')}
+});
 }
 
 function updateAdminPanel(){
@@ -1375,6 +1401,36 @@ showToast('✅ 已删除奖品：'+prize.name);
 
 function handleLogout(){showPage('verify');showToast('已退出管理后台')}
 
+// ========== 安全管理 ==========
+function changeAdminPassword(){
+  const newPwd=document.getElementById('newAdminPassword').value.trim();
+  const confirmPwd=document.getElementById('confirmAdminPassword').value.trim();
+  const statusEl=document.getElementById('adminPasswordStatus');
+  if(!newPwd){statusEl.textContent='❌ 请输入新密码';statusEl.style.color='#ef5350';return}
+  if(newPwd.length<4){statusEl.textContent='❌ 密码长度不能少于4个字符';statusEl.style.color='#ef5350';return}
+  if(newPwd!==confirmPwd){statusEl.textContent='❌ 两次输入的密码不一致';statusEl.style.color='#ef5350';return}
+  // 同步到云端 settings 表
+  fetch(API_BASE+'/api/settings',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+ADMIN_TOKEN},
+    body:JSON.stringify({key:'admin_token',value:newPwd})
+  }).then(function(r){return r.json()}).then(function(res){
+    if(res.success){
+      // 同时更新本地缓存
+      localStorage.setItem('admin_token',newPwd);
+      statusEl.textContent='✅ 密码修改成功！（已同步到云端）';
+      statusEl.style.color='#81c784';
+      document.getElementById('newAdminPassword').value='';
+      document.getElementById('confirmAdminPassword').value='';
+    }else{
+      statusEl.textContent='❌ 密码修改失败';
+      statusEl.style.color='#ef5350';
+    }
+  }).catch(function(err){
+    statusEl.textContent='❌ 密码修改失败：'+err.message;
+    statusEl.style.color='#ef5350';
+  });
+}
 // ========== 首页内容编辑 ==========
 function loadHomeContentConfig(){
 const cfg=loadHomeContent();
