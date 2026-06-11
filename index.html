@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>穗华口腔11周年院庆 · 预言家锦鲤盲盒</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#e63946;--gold:#f4a261;--deep:#264653;--accent:#e76f51;--sparkle:#ffd700}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);min-height:100vh;color:#fff;overflow-x:hidden}
+.particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden}
+.particle{position:absolute;width:4px;height:4px;background:var(--sparkle);border-radius:50%;animation:float-up linear infinite;opacity:.6}
+@keyframes float-up{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:.6}90%{opacity:.6}100%{transform:translateY(-10vh) scale(1);opacity:0}}
+.container{position:relative;z-index:1;max-width:420px;margin:0 auto;padding:20px 16px;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+.header{text-align:center;margin-bottom:30px;animation:fadeInDown .8s ease}
+@keyframes fadeInDown{from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:translateY(0)}}
+.logo{font-size:48px;margin-bottom:8px;filter:drop-shadow(0 0 10px rgba(255,215,0,.5))}
+.header h1{font-size:22px;font-weight:700;background:linear-gradient(90deg,var(--gold),var(--sparkle),var(--gold));background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 3s linear infinite;margin-bottom:6px}
+@keyframes shimmer{to{background-position:200% center}}
+.header .subtitle{font-size:13px;color:rgba(255,255,255,.6);letter-spacing:2px}
+.page{width:100%;display:none;animation:fadeIn .5s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.card{background:rgba(255,255,255,.08);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:28px 24px;margin-bottom:16px;width:100%}
+.card h2{font-size:18px;margin-bottom:6px;color:var(--gold)}
+.card .desc{font-size:13px;color:rgba(255,255,255,.6);margin-bottom:20px;line-height:1.6}
+.card .desc.small{font-size:12px}
+.input-group{margin-bottom:16px}
+.input-group label{display:block;font-size:13px;color:rgba(255,255,255,.7);margin-bottom:8px}
+.input-group input,.input-group textarea,.input-group select{width:100%;padding:14px 16px;border:1px solid rgba(255,255,255,.2);border-radius:12px;background:rgba(255,255,255,.06);color:#fff;font-size:16px;outline:none;transition:all .3s;font-family:inherit}
+.input-group textarea{min-height:120px;resize:vertical}
+.input-group input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(244,162,97,.2)}
+.input-group input::placeholder{color:rgba(255,255,255,.3)}
+.btn{width:100%;padding:15px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;transition:all .3s}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;box-shadow:0 4px 15px rgba(230,57,70,.4)}
+.btn-gold{background:linear-gradient(135deg,#f4a261,#ffd700,#f4a261);background-size:200% auto;color:#1a1a2e;box-shadow:0 4px 20px rgba(244,162,97,.5);animation:shimmer 3s linear infinite}
+.btn-outline{background:transparent;border:1px solid rgba(255,255,255,.3);color:#fff}
+.btn-outline:active{background:rgba(255,255,255,.1)}
+.btn-sm{padding:10px 16px;font-size:13px;width:auto}
+.blind-box-section{display:flex;flex-direction:column;align-items:center;width:100%}
+.box-wrapper{position:relative;width:220px;height:220px;margin:20px auto 30px;cursor:pointer;user-select:none}
+.box-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:260px;height:260px;background:radial-gradient(circle,rgba(244,162,97,.3) 0%,transparent 70%);border-radius:50%;animation:pulse-glow 2s ease-in-out infinite}
+@keyframes pulse-glow{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.5}50%{transform:translate(-50%,-50%) scale(1.15);opacity:.8}}
+.box-3d{position:relative;z-index:1;width:220px;height:220px;display:flex;align-items:center;justify-content:center;transition:transform .3s}
+.box-wrapper:hover .box-3d{transform:scale(1.05)}
+.box-wrapper.shaking .box-3d{animation:shake .6s ease}
+@keyframes shake{0%,100%{transform:rotate(0deg) scale(1)}15%{transform:rotate(-12deg) scale(1.05)}30%{transform:rotate(12deg) scale(1.05)}45%{transform:rotate(-10deg) scale(1.03)}60%{transform:rotate(10deg) scale(1.03)}75%{transform:rotate(-5deg)}90%{transform:rotate(5deg)}}
+.box-face{width:180px;height:180px;background:linear-gradient(145deg,#e63946,#c1121f);border-radius:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 10px 40px rgba(230,57,70,.4),inset 0 2px 0 rgba(255,255,255,.2),inset 0 -2px 0 rgba(0,0,0,.2);position:relative}
+.box-face::before{content:'';position:absolute;top:-2px;left:-2px;right:-2px;bottom:-2px;border-radius:26px;background:linear-gradient(135deg,var(--gold),transparent,var(--gold));z-index:-1;opacity:.5}
+.box-face .icon{font-size:64px;margin-bottom:8px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
+.box-face .text{font-size:16px;font-weight:700;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,.3);letter-spacing:2px}
+.box-hint{font-size:14px;color:rgba(255,255,255,.5);text-align:center;animation:blink 1.5s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:.5}50%{opacity:1}}
+.result-section{width:100%;text-align:center}
+.result-card{background:rgba(255,255,255,.1);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.15);border-radius:24px;padding:32px 24px;margin:20px 0;position:relative;overflow:hidden}
+.result-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:4px;background:linear-gradient(90deg,var(--primary),var(--gold),var(--accent))}
+.result-label{font-size:14px;color:rgba(255,255,255,.6);margin-bottom:12px;letter-spacing:1px}
+.result-name{font-size:36px;font-weight:800;background:linear-gradient(135deg,var(--gold),var(--sparkle));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;line-height:1.3}
+.result-icon{font-size:72px;margin:20px 0;animation:bounce-in .6s cubic-bezier(.68,-.55,.265,1.55)}
+@keyframes bounce-in{0%{transform:scale(0);opacity:0}60%{transform:scale(1.2)}100%{transform:scale(1);opacity:1}}
+.result-desc{font-size:14px;color:rgba(255,255,255,.7);line-height:1.8;text-align:left;background:rgba(0,0,0,.2);border-radius:12px;padding:16px;margin-top:12px}
+.result-desc .desc-title{font-weight:600;color:var(--gold);margin-bottom:6px;font-size:13px}
+.result-meta{margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.1);font-size:12px;color:rgba(255,255,255,.4)}
+.result-meta span{margin:0 8px}
+.action-btns{display:flex;gap:12px;margin-top:20px}
+.action-btns .btn{flex:1}
+.admin-link{text-align:center;padding:12px 0;width:100%}
+.admin-link a{display:inline-block;padding:8px 20px;border:1px solid rgba(255,255,255,.15);border-radius:20px;color:rgba(255,255,255,.35);font-size:12px;cursor:pointer;transition:all .3s;text-decoration:none}
+.admin-link a:hover{border-color:var(--gold);color:var(--gold)}
+.footer{text-align:center;padding:30px 0 20px;font-size:12px;color:rgba(255,255,255,.25);width:100%}
+.confetti-container{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:100;overflow:hidden}
+.confetti{position:absolute;width:10px;height:10px;top:-10px;animation:confetti-fall linear forwards}
+@keyframes confetti-fall{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.active{display:flex}
+.modal{background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:28px 24px;max-width:360px;width:100%;animation:modal-in .3s ease}
+@keyframes modal-in{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+.modal h3{font-size:18px;color:var(--gold);margin-bottom:16px;text-align:center}
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.8);background:rgba(0,0,0,.85);color:#fff;padding:16px 28px;border-radius:12px;font-size:14px;z-index:300;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}
+.stat-item{background:rgba(255,255,255,.06);border-radius:12px;padding:14px 10px;text-align:center}
+.stat-item .num{font-size:24px;font-weight:800;color:var(--gold)}
+.stat-item .label{font-size:11px;color:rgba(255,255,255,.5);margin-top:4px}
+.admin-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:16px}
+.admin-table th{background:rgba(244,162,97,.2);color:var(--gold);padding:10px 8px;text-align:left;font-weight:600;white-space:nowrap}
+.admin-table td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.06);color:rgba(255,255,255,.8)}
+.admin-table tr:hover td{background:rgba(255,255,255,.04)}
+.status-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.status-win{background:rgba(76,175,80,.2);color:#81c784}
+.status-lose{background:rgba(255,255,255,.08);color:rgba(255,255,255,.4)}
+.admin-actions{display:flex;gap:10px;margin-top:16px}
+.admin-actions .btn{font-size:13px;padding:12px}
+.tag{display:inline-block;padding:4px 12px;border-radius:16px;font-size:11px;font-weight:600}
+.tag-gold{background:rgba(244,162,97,.2);color:var(--gold)}
+.flex-row{display:flex;gap:12px;align-items:center}
+.flex-row .btn{flex:1}
+.upload-area{border:2px dashed rgba(255,255,255,.2);border-radius:12px;padding:20px;text-align:center;cursor:pointer;transition:all .3s;margin-bottom:12px}
+.upload-area:hover{border-color:var(--gold);background:rgba(244,162,97,.06)}
+.upload-area .upload-icon{font-size:32px;margin-bottom:8px}
+.upload-area .upload-text{font-size:13px;color:rgba(255,255,255,.6)}
+.upload-area .upload-hint{font-size:11px;color:rgba(255,255,255,.35);margin-top:4px}
+/* 倒计时 */
+.countdown-box{background:rgba(255,255,255,.06);border:1px solid rgba(244,162,97,.25);border-radius:16px;padding:20px;text-align:center;margin-bottom:16px}
+.countdown-box .cd-title{font-size:13px;color:rgba(255,255,255,.6);margin-bottom:12px;letter-spacing:1px}
+.countdown-box .cd-time{display:flex;justify-content:center;gap:8px;margin-bottom:8px}
+.countdown-box .cd-item{background:rgba(0,0,0,.25);border-radius:10px;padding:10px 14px;min-width:56px}
+.countdown-box .cd-num{font-size:28px;font-weight:800;color:var(--gold);line-height:1}
+.countdown-box .cd-label{font-size:10px;color:rgba(255,255,255,.4);margin-top:4px}
+.countdown-box .cd-colon{font-size:24px;font-weight:700;color:var(--gold);align-self:center}
+.countdown-box .cd-status{font-size:12px;color:var(--gold);font-weight:600}
+.countdown-box .cd-status.ended{color:#e76f51}
+/* 时间配置 */
+.time-config{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.time-config .input-group{margin-bottom:0}
+@media(min-width:480px){.container{padding:30px 24px}.box-wrapper{width:260px;height:260px}.box-face{width:210px;height:210px}.box-face .icon{font-size:80px}}
+</style>
+</head>
+<body>
+<div class="particles" id="particles"></div>
+<div class="confetti-container" id="confettiContainer"></div>
+<div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="adminModal">
+  <div class="modal">
+    <h3>🔐 管理员验证</h3>
+    <div class="input-group">
+      <label>请输入管理密码</label>
+      <input type="password" id="adminPassword" placeholder="密码：suihua2026">
+    </div>
+    <button class="btn btn-primary" onclick="verifyAdmin()">进入管理后台</button>
+  </div>
+</div>
+
+<div class="container">
+  <div class="header">
+    <div class="logo">🎁</div>
+    <h1>穗华口腔11周年院庆</h1>
+    <div class="subtitle">预 言 家 锦 鲤 盲 盒</div>
+  </div>
+
+  <!-- 员工端：验证 -->
+  <div class="page active" id="page-verify">
+    <!-- 倒计时 -->
+    <div class="countdown-box" id="countdownBox">
+      <div class="cd-title">⏰ 距离抽奖开始还有</div>
+      <div class="cd-time" id="countdownTime">
+        <div class="cd-item"><div class="cd-num" id="cdDay">00</div><div class="cd-label">天</div></div>
+        <div class="cd-colon">:</div>
+        <div class="cd-item"><div class="cd-num" id="cdHour">00</div><div class="cd-label">时</div></div>
+        <div class="cd-colon">:</div>
+        <div class="cd-item"><div class="cd-num" id="cdMin">00</div><div class="cd-label">分</div></div>
+        <div class="cd-colon">:</div>
+        <div class="cd-item"><div class="cd-num" id="cdSec">00</div><div class="cd-label">秒</div></div>
+      </div>
+      <div class="cd-status" id="countdownStatus">抽奖进行中</div>
+    </div>
+
+    <div class="card">
+      <h2>📱 员工身份验证</h2>
+      <p class="desc">请输入手机号和姓名，验证身份后开启盲盒</p>
+      <div class="input-group">
+        <label>手机号码</label>
+        <input type="text" id="userPhone" placeholder="请输入手机号" maxlength="11" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      </div>
+      <div class="input-group">
+        <label>您的姓名</label>
+        <input type="text" id="userName" placeholder="请输入姓名" maxlength="20">
+      </div>
+      <button class="btn btn-primary" onclick="handleVerify()">验证身份 & 开启盲盒</button>
+    </div>
+    <div class="card" style="text-align:center">
+      <p class="desc" style="margin-bottom:8px">📋 活动规则</p>
+      <p class="desc small">猜中本周销冠的中奖员工可开启一次盲盒<br>盲盒内含10种特权福利，随机抽取<br>特权有效期30天，请截图分享到全员奋斗群</p>
+    </div>
+    <div class="admin-link"><a onclick="handleAdminClick()">⚙️ 管理员入口</a></div>
+  </div>
+
+  <!-- 未中奖 -->
+  <div class="page" id="page-notwin">
+    <div class="card" style="text-align:center">
+      <div style="font-size:64px;margin-bottom:16px">😅</div>
+      <h2 style="margin-bottom:12px">很遗憾，您没有中奖</h2>
+      <p class="desc">您没有猜中本周销冠，再接再厉！</p>
+      <button class="btn btn-primary" onclick="handleBack()">返回首页</button>
+    </div>
+  </div>
+
+  <!-- 已开奖 -->
+  <div class="page" id="page-already">
+    <div class="card" style="text-align:center">
+      <div style="font-size:64px;margin-bottom:16px">📝</div>
+      <h2 style="margin-bottom:12px">您已参与过开奖</h2>
+      <p class="desc" id="alreadyInfo" style="margin-bottom:24px"></p>
+      <button class="btn btn-primary" onclick="handleBack()">返回首页</button>
+    </div>
+  </div>
+
+  <!-- 盲盒 -->
+  <div class="page" id="page-blindbox">
+    <div class="blind-box-section">
+      <div class="card" style="text-align:center;padding:20px">
+        <p class="desc" style="margin-bottom:4px">🎯 恭喜中奖！</p>
+        <p class="desc small" id="boxUserName" style="color:var(--gold);font-weight:600;margin-bottom:0"></p>
+      </div>
+      <div class="box-wrapper" id="boxWrapper" onclick="handleOpenBox()">
+        <div class="box-glow"></div>
+        <div class="box-3d">
+          <div class="box-face"><div class="icon">🎁</div><div class="text">点击开启</div></div>
+        </div>
+      </div>
+      <p class="box-hint" id="boxHint">👆 点击盲盒，开启你的幸运！</p>
+    </div>
+  </div>
+
+  <!-- 结果 -->
+  <div class="page" id="page-result">
+    <div class="result-section">
+      <div class="result-card" id="resultCard">
+        <div class="result-label">🎊 恭喜您获得的盲盒福利 🎊</div>
+        <div class="result-name" id="resultPrizeName"></div>
+        <div class="result-icon" id="resultIcon"></div>
+        <div class="result-desc" id="resultDesc"></div>
+        <div class="result-meta"><span id="resultTime"></span><span>·</span><span>穗华口腔11周年</span></div>
+      </div>
+      <div class="action-btns">
+        <button class="btn btn-gold" onclick="handleShare()">📸 截图分享</button>
+        <button class="btn btn-outline" onclick="handleBack()">🏠 返回首页</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 管理员 -->
+  <div class="page" id="page-admin">
+    <div class="card">
+      <h2>⚙️ 管理后台</h2>
+      <p class="desc">管理白名单、查看开奖记录、配置数据回传、设置抽奖时间</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-item"><div class="num" id="statTotal">0</div><div class="label">白名单人数</div></div>
+      <div class="stat-item"><div class="num" id="statWhitelist">0</div><div class="label">已启用</div></div>
+      <div class="stat-item"><div class="num" id="statUnbox">0</div><div class="label">已开奖</div></div>
+    </div>
+
+    <div class="card">
+      <h2>📋 白名单管理</h2>
+      <p class="desc small">手动添加、上传表格导入白名单</p>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:rgba(255,255,255,.7);cursor:pointer">
+          <input type="checkbox" id="whitelistEnabled" onchange="toggleWhitelist()">启用白名单限制（开启后仅白名单可参与）
+        </label>
+      </div>
+
+      <!-- 手动添加 -->
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <div class="input-group" style="flex:1;margin-bottom:0">
+          <input type="text" id="manualName" placeholder="姓名" style="padding:10px 12px;font-size:14px">
+        </div>
+        <div class="input-group" style="flex:1;margin-bottom:0">
+          <input type="text" id="manualPhone" placeholder="手机号" maxlength="11" style="padding:10px 12px;font-size:14px" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        </div>
+        <button class="btn btn-primary btn-sm" style="width:auto;align-self:flex-end" onclick="addManualWhitelist()">➕ 添加</button>
+      </div>
+
+      <div class="upload-area" id="uploadArea" onclick="document.getElementById('whitelistFile').click()">
+        <div class="upload-icon">📁</div>
+        <div class="upload-text">点击上传表格导入白名单</div>
+        <div class="upload-hint">支持 CSV / Excel（.xlsx）格式，需包含「姓名」和「手机号」列</div>
+      </div>
+      <input type="file" id="whitelistFile" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleFileUpload(this)">
+
+      <div id="whitelistSection">
+        <table class="admin-table" id="whitelistTable">
+          <thead><tr><th>姓名</th><th>手机号</th><th>操作</th></tr></thead>
+          <tbody id="whitelistBody">
+            <tr><td colspan="3" style="text-align:center;color:rgba(255,255,255,.3);padding:20px">暂无白名单数据</td></tr>
+          </tbody>
+        </table>
+        <div class="admin-actions" style="margin-top:12px">
+          <button class="btn btn-outline btn-sm" onclick="clearWhitelist()">🗑️ 清空白名单</button>
+          <button class="btn btn-primary btn-sm" onclick="saveManualWhitelist()">💾 保存当前白名单</button>
+        </div>
+      </div>
+      <div id="importStatus" style="margin-top:12px;font-size:12px;color:rgba(255,255,255,.5)"></div>
+    </div>
+
+    <div class="card">
+      <h2>⏰ 抽奖时间设置</h2>
+      <p class="desc small">设置抽奖开始和结束时间，精确到分钟</p>
+      <div class="time-config">
+        <div class="input-group">
+          <label>开始时间</label>
+          <input type="datetime-local" id="lotteryStartTime">
+        </div>
+        <div class="input-group">
+          <label>结束时间</label>
+          <input type="datetime-local" id="lotteryEndTime">
+        </div>
+      </div>
+      <div style="display:flex;gap:12px">
+        <button class="btn btn-primary btn-sm" onclick="saveLotteryTime()">💾 保存时间</button>
+        <button class="btn btn-outline btn-sm" onclick="clearLotteryTime()">🗑️ 清除限制</button>
+      </div>
+      <div id="lotteryTimeStatus" style="margin-top:12px;font-size:12px;color:rgba(255,255,255,.5)"></div>
+    </div>
+
+    <div class="card">
+      <h2>🔗 配置Webhook数据回传</h2>
+      <p class="desc small">员工开奖后自动将结果写入企微智能表格</p>
+      <div class="input-group">
+        <label>Webhook 地址</label>
+        <input type="text" id="webhookUrl" placeholder="https://qyapi.weixin.qq.com/cgi-bin/wedoc/smartsheet/webhook?key=xxx">
+      </div>
+      <div style="display:flex;gap:12px">
+        <button class="btn btn-primary btn-sm" onclick="handleSaveWebhook()">💾 保存</button>
+        <button class="btn btn-outline btn-sm" onclick="handleTestWebhook()">🧪 测试</button>
+      </div>
+      <div id="webhookStatus" style="margin-top:12px;font-size:12px;color:rgba(255,255,255,.5)"></div>
+    </div>
+
+    <div class="card">
+      <h2>🎲 奖品概率设置</h2>
+      <p class="desc small">调整每个奖品的中奖权重，权重越高中奖概率越大（默认每个10）</p>
+      <div id="prizeProbList" style="margin-bottom:12px">
+        <!-- 动态生成概率输入 -->
+      </div>
+      <div style="display:flex;gap:12px">
+        <button class="btn btn-primary btn-sm" onclick="savePrizeProbConfig()">💾 保存概率</button>
+        <button class="btn btn-outline btn-sm" onclick="resetPrizeProb()">🔄 恢复默认</button>
+      </div>
+      <div id="prizeProbStatus" style="margin-top:12px;font-size:12px;color:rgba(255,255,255,.5)"></div>
+    </div>
+
+    <div class="card">
+      <h2>📋 开奖记录</h2>
+      <table class="admin-table">
+        <thead><tr><th>时间</th><th>姓名</th><th>手机号</th><th>奖品编号</th><th>奖品</th></tr></thead>
+        <tbody id="recordTableBody">
+          <tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,.3);padding:20px">暂无开奖记录</td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:12px">
+        <button class="btn btn-outline btn-sm" onclick="clearRecords()" style="border-color:rgba(230,57,70,.4);color:#e76f51">🗑️ 一键清空开奖记录（重新开始）</button>
+      </div>
+    </div>
+
+    <div class="admin-actions">
+      <button class="btn btn-outline" onclick="handleExportExcel()">📤 导出Excel</button>
+      <button class="btn btn-outline" onclick="handleLogout()">🚪 退出后台</button>
+    </div>
+    <div class="footer">穗华口腔 · 11周年院庆</div>
+    <div class="admin-link"><a onclick="handleAdminClick()">⚙️ 管理员入口</a></div>
+  </div>
+</div>
+
+<script src="https://cdn.bootcdn.net/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ========== 奖项配置 ==========
+const PRIZES=[
+{id:1,name:'超级加倍券',icon:'💰',group:'一、欧皇附体（奖金加成类）',desc:'本周分得的"销冠竞猜奖"奖金直接 x2 倍发放！\n\n例如分到30元，直接发60元。\n\n规则：随本周奖金一同由主管发放。'},
+{id:2,name:'下周"双份押注"卡',icon:'🎯',group:'一、欧皇附体（奖金加成类）',desc:'下周参与销冠竞猜时，若猜中则个人可分得 2 份奖金池份额。\n\n规则：仅限下周单次有效。'},
+{id:3,name:'免死金牌·复活卡',icon:'🛡️',group:'一、欧皇附体（奖金加成类）',desc:'如果下周猜错了销冠，凭此卡依然可以强行加入下周的平分奖金池。\n\n规则：仅限使用1次，让非酋也能逆袭。'},
+{id:4,name:'忘打卡救星',icon:'⏰',group:'二、打工人续命（考勤弹性类）',desc:'抵消 1 次忘打卡记录。\n\n规则：30天内有效，当日必须有真实在岗的排班记录，由直属主管确认后对接人事核销。'},
+{id:5,name:'时间刺客',icon:'⌚',group:'二、打工人续命（考勤弹性类）',desc:'豁免 1 次轻微迟到。\n\n规则：30天内有效，仅限单次迟到时间在30分钟以内方可核销使用。'},
+{id:6,name:'归心似箭',icon:'🏠',group:'二、打工人续命（考勤弹性类）',desc:'可提前 1 小时下班。\n\n规则：30天内有效，需提前半天向主管报备，临床及客服岗位需确保客户交接完毕。'},
+{id:7,name:'主管专属下午茶',icon:'🧋',group:'二、打工人续命（考勤弹性类）',desc:'获得一次让直属主管帮忙点下午茶的特权（额度30元以内）。\n\n规则：30天内有效，随时向直属主管兑现这份"甜蜜惊喜"。'},
+{id:8,name:'睡个好觉',icon:'😴',group:'二、打工人续命（考勤弹性类）',desc:'可推迟 1 小时上班。\n\n规则：30天内有效，需提前一天向主管报备，妥善安排好工作。'},
+{id:9,name:'绩效守护金牌',icon:'🏅',group:'三、职场通用（日常解压类）',desc:'当月个人绩效考核得分低于 90 分时方可激活使用，直接加 5 分。\n\n规则：仅限抵扣日常行政、仪容仪表等非严重违规扣分；最高加至 95 分。'},
+{id:10,name:'免开非重要会议券',icon:'📋',group:'三、职场通用（日常解压类）',desc:'可豁免参加一次科室/部门的日常夕会或常规行政总结会议。\n\n规则：30天内有效，核心医疗大交班、医疗安全会议、全院大会不可免除。'}
+];
+
+const STORAGE_KEY='suihua_blindbox';
+const WHITELIST_KEY='suihua_whitelist';
+const WHITELIST_ENABLED_KEY='suihua_whitelist_enabled';
+const WEBCONFIG_KEY='suihua_webhook';
+const LOTTERY_TIME_KEY='suihua_lottery_time';
+const PRIZE_PROB_KEY='suihua_prize_prob';
+const WEBHOOK_URL='https://qyapi.weixin.qq.com/cgi-bin/wedoc/smartsheet/webhook?key=6MTDj5drErcoARrxBOasHnvODITbyOjJwuzAXYz3kE7ogRBLnXMUs3mJ8fVmwp75HuMPscQDCW2Hg9ZkJZBDm30IzHhMRJHXgB5NhFFU0wxw';
+
+// ========== 数据操作 ==========
+function loadData(){try{const raw=localStorage.getItem(STORAGE_KEY);return raw?JSON.parse(raw):{records:[],champion:''}}catch(e){return{records:[],champion:''}}}
+function saveData(data){localStorage.setItem(STORAGE_KEY,JSON.stringify(data))}
+function loadWhitelist(){try{const raw=localStorage.getItem(WHITELIST_KEY);return raw?JSON.parse(raw):[]}catch(e){return[]}}
+function saveWhitelistData(data){localStorage.setItem(WHITELIST_KEY,JSON.stringify(data))}
+function loadWhitelistEnabled(){try{const raw=localStorage.getItem(WHITELIST_ENABLED_KEY);return raw==='true'}catch(e){return false}}
+function saveWhitelistEnabled(v){localStorage.setItem(WHITELIST_ENABLED_KEY,v?'true':'false')}
+function loadWebhook(){try{const raw=localStorage.getItem(WEBCONFIG_KEY);return raw?JSON.parse(raw):{url:'',enabled:false}}catch(e){return{url:'',enabled:false}}}
+function saveWebhook(data){localStorage.setItem(WEBCONFIG_KEY,JSON.stringify(data))}
+function loadLotteryTime(){try{const raw=localStorage.getItem(LOTTERY_TIME_KEY);return raw?JSON.parse(raw):{start:'',end:''}}catch(e){return{start:'',end:''}}}
+function saveLotteryTimeData(data){localStorage.setItem(LOTTERY_TIME_KEY,JSON.stringify(data))}
+function loadPrizeProb(){try{const raw=localStorage.getItem(PRIZE_PROB_KEY);return raw?JSON.parse(raw):null}catch(e){return null}}
+function savePrizeProb(data){localStorage.setItem(PRIZE_PROB_KEY,JSON.stringify(data))}
+
+// ========== 手机号验证（修复BUG：支持所有号段） ==========
+function isValidPhone(phone){
+if(!phone)return false;
+phone=phone.trim().replace(/\s/g,'');
+// 支持所有1开头的11位手机号，包括虚拟运营商165/167/170/171等
+return /^1[0-9]{10}$/.test(phone);
+}
+
+// ========== 粒子背景 ==========
+function initParticles(){const c=document.getElementById('particles');for(let i=0;i<30;i++){const p=document.createElement('div');p.className='particle';p.style.left=Math.random()*100+'%';p.style.animationDuration=(4+Math.random()*6)+'s';p.style.animationDelay=Math.random()*5+'s';p.style.width=p.style.height=(2+Math.random()*4)+'px';p.style.background=['#ffd700','#f4a261','#e63946','#fff'][Math.floor(Math.random()*4)];c.appendChild(p)}}
+
+// ========== 彩带特效 ==========
+function triggerConfetti(){const c=document.getElementById('confettiContainer');c.innerHTML='';const colors=['#ffd700','#e63946','#f4a261','#2a9d8f','#e76f51','#fff'];for(let i=0;i<60;i++){const d=document.createElement('div');d.className='confetti';d.style.left=Math.random()*100+'%';d.style.background=colors[Math.floor(Math.random()*colors.length)];d.style.animationDuration=(1.5+Math.random()*2)+'s';d.style.animationDelay=Math.random()*0.5+'s';d.style.borderRadius=Math.random()>0.5?'50%':'2px';c.appendChild(d)}setTimeout(function(){c.innerHTML=''},4000)}
+
+// ========== Toast ==========
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2000)}
+function showPage(id){document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});document.getElementById('page-'+id).classList.add('active')}
+
+// ========== 倒计时 ==========
+let countdownTimer=null;
+function startCountdown(){
+if(countdownTimer)clearInterval(countdownTimer);
+updateCountdown();
+countdownTimer=setInterval(updateCountdown,1000);
+}
+function updateCountdown(){
+const cfg=loadLotteryTime();
+const now=new Date().getTime();
+const start=cfg.start?new Date(cfg.start).getTime():0;
+const end=cfg.end?new Date(cfg.end).getTime():0;
+const statusEl=document.getElementById('countdownStatus');
+const titleEl=document.querySelector('.countdown-box .cd-title');
+
+if(!start&&!end){
+// 无时间限制
+document.getElementById('cdDay').textContent='--';
+document.getElementById('cdHour').textContent='--';
+document.getElementById('cdMin').textContent='--';
+document.getElementById('cdSec').textContent='--';
+if(statusEl){statusEl.textContent='抽奖进行中（无时间限制）';statusEl.className='cd-status';}
+if(titleEl)titleEl.textContent='⏰ 抽奖活动';
+return;
+}
+
+if(now<start){
+// 未开始
+const diff=start-now;
+const d=Math.floor(diff/86400000);
+const h=Math.floor((diff%86400000)/3600000);
+const m=Math.floor((diff%3600000)/60000);
+const s=Math.floor((diff%60000)/1000);
+document.getElementById('cdDay').textContent=String(d).padStart(2,'0');
+document.getElementById('cdHour').textContent=String(h).padStart(2,'0');
+document.getElementById('cdMin').textContent=String(m).padStart(2,'0');
+document.getElementById('cdSec').textContent=String(s).padStart(2,'0');
+if(statusEl){statusEl.textContent='抽奖尚未开始';statusEl.className='cd-status ended';}
+if(titleEl)titleEl.textContent='⏰ 距离抽奖开始还有';
+}else if(end&&now>end){
+// 已结束
+document.getElementById('cdDay').textContent='00';
+document.getElementById('cdHour').textContent='00';
+document.getElementById('cdMin').textContent='00';
+document.getElementById('cdSec').textContent='00';
+if(statusEl){statusEl.textContent='抽奖已结束';statusEl.className='cd-status ended';}
+if(titleEl)titleEl.textContent='⏰ 抽奖活动已结束';
+}else{
+// 进行中
+if(end){
+const diff=end-now;
+const d=Math.floor(diff/86400000);
+const h=Math.floor((diff%86400000)/3600000);
+const m=Math.floor((diff%3600000)/60000);
+const s=Math.floor((diff%60000)/1000);
+document.getElementById('cdDay').textContent=String(d).padStart(2,'0');
+document.getElementById('cdHour').textContent=String(h).padStart(2,'0');
+document.getElementById('cdMin').textContent=String(m).padStart(2,'0');
+document.getElementById('cdSec').textContent=String(s).padStart(2,'0');
+if(statusEl){statusEl.textContent='抽奖进行中，剩余时间';statusEl.className='cd-status';}
+if(titleEl)titleEl.textContent='⏰ 距离抽奖结束还有';
+}else{
+document.getElementById('cdDay').textContent='--';
+document.getElementById('cdHour').textContent='--';
+document.getElementById('cdMin').textContent='--';
+document.getElementById('cdSec').textContent='--';
+if(statusEl){statusEl.textContent='抽奖进行中';statusEl.className='cd-status';}
+if(titleEl)titleEl.textContent='⏰ 抽奖活动进行中';
+}
+}
+}
+
+function checkLotteryTime(){
+const cfg=loadLotteryTime();
+if(!cfg.start&&!cfg.end)return{ok:true,msg:''};
+const now=new Date().getTime();
+const start=cfg.start?new Date(cfg.start).getTime():0;
+const end=cfg.end?new Date(cfg.end).getTime():0;
+if(start&&now<start)return{ok:false,msg:'抽奖尚未开始，请耐心等待'};
+if(end&&now>end)return{ok:false,msg:'抽奖已结束，感谢参与'};
+return{ok:true,msg:''};
+}
+
+// ========== 员工端验证 ==========
+let currentUser=null;
+function handleVerify(){
+const phone=document.getElementById('userPhone').value.trim();
+const name=document.getElementById('userName').value.trim();
+if(!phone||!name){showToast('请输入手机号和姓名');return}
+if(!isValidPhone(phone)){showToast('手机号格式不正确，请输入11位手机号');return}
+
+// 检查抽奖时间
+const timeCheck=checkLotteryTime();
+if(!timeCheck.ok){showToast(timeCheck.msg);return}
+
+// 检查白名单开关
+const whitelistEnabled=loadWhitelistEnabled();
+if(whitelistEnabled){
+const whitelist=loadWhitelist();
+const winner=whitelist.find(function(w){return w.phone===phone});
+if(!winner){showToast('您不在白名单中，无法参与');return}
+}
+
+// 检查是否已开奖
+const data=loadData();
+const records=data.records;
+const already=records.find(function(r){return r.phone===phone});
+if(already){
+document.getElementById('alreadyInfo').textContent='您已开过盲盒，获得：'+(PRIZES.find(function(p){return p.id===already.prizeId})||{}).name;
+showPage('already');return}
+
+currentUser={name:name,phone:phone,dept:'',prizeId:null};
+document.getElementById('boxUserName').textContent=name;
+showPage('blindbox');
+}
+
+function handleOpenBox(){
+if(isOpening)return;isOpening=true;
+// 再次检查时间
+const timeCheck=checkLotteryTime();
+if(!timeCheck.ok){showToast(timeCheck.msg);isOpening=false;return}
+
+const w=document.getElementById('boxWrapper');const h=document.getElementById('boxHint');
+w.classList.add('shaking');h.textContent='✨ 正在拆开盲盒...';
+setTimeout(function(){
+w.classList.remove('shaking');
+const prize=drawPrizeByWeight();
+const data=loadData();
+const record={name:currentUser.name,phone:currentUser.phone,dept:currentUser.dept,prizeId:prize.id,time:new Date().toLocaleString('zh-CN')};
+data.records.push(record);saveData(data);
+displayResult(prize);triggerConfetti();h.textContent='🎊 恭喜中奖！';isOpening=false;
+// 发送Webhook
+const wh=loadWebhook();if(wh.enabled&&wh.url){setTimeout(function(){sendWebhook(record)},500)}
+},1500);
+}
+
+// ========== 加权随机抽奖 ==========
+function drawPrizeByWeight(){
+const probs=loadPrizeProb();
+// 如果没有配置概率，使用默认权重（每个奖品10%）
+if(!probs){
+const prizeIndex=Math.floor(Math.random()*10);
+return PRIZES[prizeIndex];
+}
+// 计算总权重
+let totalWeight=0;
+const weights=PRIZES.map(function(p){
+const w=probs[p.id]||10;
+return w;
+});
+weights.forEach(function(w){totalWeight+=w});
+// 加权随机
+let random=Math.random()*totalWeight;
+for(let i=0;i<PRIZES.length;i++){
+random-=weights[i];
+if(random<=0)return PRIZES[i];
+}
+return PRIZES[PRIZES.length-1];
+}
+let isOpening=false;
+
+function displayResult(prize){
+document.getElementById('resultPrizeName').textContent=prize.name;
+document.getElementById('resultIcon').textContent=prize.icon;
+document.getElementById('resultDesc').innerHTML='<div class="desc-title">📖 奖品内容与使用规则：</div>'+prize.desc.replace(/\n/g,'<br>');
+document.getElementById('resultTime').textContent=new Date().toLocaleString('zh-CN');
+showPage('result');
+}
+
+function handleShare(){showToast('📸 请截图分享到全员奋斗群！');setTimeout(function(){showToast('💡 长按屏幕或使用手机截屏快捷键')},2500)}
+function handleBack(){currentUser=null;isOpening=false;document.getElementById('userPhone').value='';document.getElementById('userName').value='';showPage('verify')}
+
+// ========== 管理员 ==========
+function handleAdminClick(){document.getElementById('adminModal').classList.add('active');setTimeout(function(){document.getElementById('adminPassword').focus()},300)}
+document.getElementById('adminPassword').addEventListener('keypress',function(e){if(e.key==='Enter')verifyAdmin()});
+
+function verifyAdmin(){
+const pwd=document.getElementById('adminPassword').value.trim();
+if(pwd==='suihua2026'||pwd==='123456'){
+document.getElementById('adminModal').classList.remove('active');
+document.getElementById('adminPassword').value='';showPage('admin');updateAdminPanel();loadWebhookConfig();loadLotteryTimeConfig();renderPrizeProbConfig();
+const cb=document.getElementById('whitelistEnabled');if(cb){cb.checked=loadWhitelistEnabled()}
+}else{showToast('密码错误')}
+}
+
+function updateAdminPanel(){
+const data=loadData();const whitelist=loadWhitelist();
+document.getElementById('statTotal').textContent=whitelist.length;
+document.getElementById('statWhitelist').textContent=loadWhitelistEnabled()?whitelist.length:0;
+document.getElementById('statUnbox').textContent=data.records.length;
+renderWhitelistTable();
+const tbody=document.getElementById('recordTableBody');
+if(data.records.length>0){
+tbody.innerHTML=data.records.slice().reverse().map(function(r){
+const prize=PRIZES.find(function(p){return p.id===r.prizeId});
+return'<tr><td>'+r.time+'</td><td>'+r.name+'</td><td>'+r.phone+'</td><td>'+(prize?prize.id:'-')+'</td><td>'+(prize?prize.icon+' '+prize.name:'-')+'</td></tr>';
+}).join('');
+}else{tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,.3);padding:20px">暂无开奖记录</td></tr>'}
+}
+
+// ========== 白名单手动添加 ==========
+function addManualWhitelist(){
+const name=document.getElementById('manualName').value.trim();
+const phone=document.getElementById('manualPhone').value.trim().replace(/\s/g,'');
+if(!name||!phone){showToast('请输入姓名和手机号');return}
+if(!isValidPhone(phone)){showToast('手机号格式不正确');return}
+const whitelist=loadWhitelist();
+if(whitelist.find(function(w){return w.phone===phone})){showToast('该手机号已存在');return}
+whitelist.push({name:name,phone:phone});
+saveWhitelistData(whitelist);
+document.getElementById('manualName').value='';
+document.getElementById('manualPhone').value='';
+updateAdminPanel();
+showToast('✅ 添加成功');
+}
+
+function renderWhitelistTable(){
+const whitelist=loadWhitelist();
+const tbody=document.getElementById('whitelistBody');
+if(whitelist.length===0){
+tbody.innerHTML='<tr><td colspan="3" style="text-align:center;color:rgba(255,255,255,.3);padding:20px">暂无白名单数据</td></tr>';
+return;
+}
+tbody.innerHTML=whitelist.map(function(w,i){
+return'<tr><td>'+w.name+'</td><td>'+w.phone+'</td><td><button class="btn btn-outline btn-sm" onclick="removeWhitelistItem('+i+')">删除</button></td></tr>';
+}).join('');
+}
+
+function removeWhitelistItem(index){
+const whitelist=loadWhitelist();
+whitelist.splice(index,1);
+saveWhitelistData(whitelist);
+updateAdminPanel();
+showToast('已删除');
+}
+
+function clearWhitelist(){
+if(!confirm('确定清空所有白名单数据？'))return;
+saveWhitelistData([]);
+updateAdminPanel();
+showToast('白名单已清空');
+}
+
+function saveManualWhitelist(){showToast('✅ 白名单已保存');}
+
+function loadWebhookConfig(){const wh=loadWebhook();document.getElementById('webhookUrl').value=wh.url||''}
+
+// ========== 抽奖时间配置 ==========
+function loadLotteryTimeConfig(){
+const cfg=loadLotteryTime();
+if(cfg.start)document.getElementById('lotteryStartTime').value=cfg.start;
+if(cfg.end)document.getElementById('lotteryEndTime').value=cfg.end;
+const statusEl=document.getElementById('lotteryTimeStatus');
+if(!cfg.start&&!cfg.end){if(statusEl)statusEl.textContent='当前无时间限制';}
+else{if(statusEl)statusEl.textContent='开始：'+(cfg.start||'未设置')+' | 结束：'+(cfg.end||'未设置');}
+}
+
+function saveLotteryTime(){
+const start=document.getElementById('lotteryStartTime').value;
+const end=document.getElementById('lotteryEndTime').value;
+if(start&&end&&new Date(start)>=new Date(end)){showToast('结束时间必须晚于开始时间');return}
+saveLotteryTimeData({start:start,end:end});
+loadLotteryTimeConfig();
+showToast('✅ 抽奖时间已保存');
+startCountdown();
+}
+
+function clearLotteryTime(){
+if(!confirm('确定清除抽奖时间限制？'))return;
+saveLotteryTimeData({start:'',end:''});
+document.getElementById('lotteryStartTime').value='';
+document.getElementById('lotteryEndTime').value='';
+loadLotteryTimeConfig();
+showToast('✅ 时间限制已清除');
+startCountdown();
+}
+
+// ========== 文件上传导入白名单 ==========
+function handleFileUpload(input){
+const file=input.files[0];
+if(!file){return}
+const statusEl=document.getElementById('importStatus');
+statusEl.textContent='🔄 正在解析文件...';
+statusEl.style.color='#ffd700';
+
+const reader=new FileReader();
+reader.onload=function(e){
+try{
+const data=e.target.result;
+let rows=[];
+if(file.name.toLowerCase().endsWith('.csv')){
+rows=parseCSV(data);
+}else{
+rows=parseCSV(data);
+}
+if(rows.length===0){statusEl.textContent='⚠️ 未解析到数据，请检查文件格式';statusEl.style.color='#e76f51';return}
+
+const whitelist=[];
+let nameIdx=-1,phoneIdx=-1;
+const header=rows[0].map(function(c){return c.trim()});
+for(let i=0;i<header.length;i++){
+const h=header[i];
+if(/姓名|名字|name/i.test(h))nameIdx=i;
+if(/手机|电话|phone|tel/i.test(h))phoneIdx=i;
+}
+if(nameIdx===-1)nameIdx=0;
+if(phoneIdx===-1)phoneIdx=1;
+
+const startRow=(nameIdx>=0&&phoneIdx>=0&&rows[0][nameIdx]===header[nameIdx])?1:0;
+for(let i=startRow;i<rows.length;i++){
+const row=rows[i];
+if(row.length<Math.max(nameIdx,phoneIdx)+1)continue;
+const name=row[nameIdx]?row[nameIdx].trim():'';
+const phone=row[phoneIdx]?row[phoneIdx].trim().replace(/\s/g,''):'';
+if(name&&phone&&isValidPhone(phone)){whitelist.push({name:name,phone:phone})}
+}
+
+if(whitelist.length===0){statusEl.textContent='⚠️ 未找到有效的姓名+手机号数据';statusEl.style.color='#e76f51';return}
+
+const existing=loadWhitelist();
+const map={};
+existing.forEach(function(w){map[w.phone]=w});
+let dup=0;
+whitelist.forEach(function(w){if(map[w.phone]){dup++}else{map[w.phone]=w}});
+const merged=Object.values(map);
+saveWhitelistData(merged);
+updateAdminPanel();
+statusEl.textContent='✅ 导入成功：新增 '+(merged.length-existing.length)+' 人，跳过重复 '+dup+' 人，共 '+merged.length+' 人';
+statusEl.style.color='#81c784';
+showToast('✅ 导入成功 '+merged.length+' 人');
+input.value='';
+}catch(err){statusEl.textContent='❌ 解析失败: '+err.message;statusEl.style.color='#e76f51';}
+};
+reader.readAsText(file,'UTF-8');
+}
+
+function parseCSV(text){
+const lines=text.split(/\r?\n/);
+const result=[];
+for(let i=0;i<lines.length;i++){
+const line=lines[i].trim();
+if(!line)continue;
+const cols=[];
+let cur='';let inQ=false;
+for(let j=0;j<line.length;j++){
+const ch=line[j];
+if(ch==='"'){inQ=!inQ;continue}
+if(ch===','&&!inQ){cols.push(cur);cur='';continue}
+cur+=ch;
+}
+cols.push(cur);
+result.push(cols);
+}
+return result;
+}
+
+// ========== 白名单开关 ==========
+function toggleWhitelist(){
+const cb=document.getElementById('whitelistEnabled');
+const enabled=cb?cb.checked:false;
+saveWhitelistEnabled(enabled);
+showToast(enabled?'✅ 白名单限制已开启':'✅ 白名单限制已关闭（所有人可参与）');
+updateAdminPanel();
+}
+
+// ========== Webhook ==========
+function handleSaveWebhook(){
+const url=document.getElementById('webhookUrl').value.trim();
+const enabled=!!url;
+saveWebhook({url:url,enabled:enabled});
+if(!url){showToast('⚠️ 请先填写Webhook地址');return}
+showToast('✅ Webhook配置已保存');
+const el=document.getElementById('webhookStatus');if(el){el.textContent='✅ 已保存，开启自动回传后生效';el.style.color='#81c784'}
+}
+
+async function handleTestWebhook(){
+const wh=loadWebhook();const url=wh.url||document.getElementById('webhookUrl').value.trim();
+if(!url){showToast('⚠️ 请先填写Webhook地址');return}
+const el=document.getElementById('webhookStatus');if(el){el.textContent='🔄 测试中...';el.style.color='#ffd700'}
+try{
+const resp=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({add_records:[{values:{}}]})});
+const result=await resp.json();
+if(result.errcode===0){if(el){el.textContent='✅ 测试成功！';el.style.color='#81c784'}showToast('✅ 连接成功')}
+else{if(el){el.textContent='⚠️ 连接成功但需字段名匹配（errcode:'+result.errcode+'）';el.style.color='#e76f51'}showToast('⚠️ 需先创建表格列')}
+}catch(e){if(el){el.textContent='❌ 连接失败: '+e.message;el.style.color='#e76f51'}showToast('❌ 连接失败')}
+}
+
+async function sendWebhook(record){
+const wh=loadWebhook();if(!wh.enabled||!wh.url)return false;
+const prize=PRIZES.find(function(p){return p.id===record.prizeId});
+const payload={add_records:[{values:{'内容':[{type:'text',text:'姓名:'+record.name+'|手机:'+record.phone+'|部门:'+record.dept+'|奖品:'+(prize?prize.name:'-')+'|时间:'+record.time}]}}]};
+try{
+const resp=await fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+return resp.ok;
+}catch(e){console.error(e);return false}
+}
+
+// ========== 导出Excel（使用SheetJS） ==========
+function handleExportExcel(){
+const data=loadData();const whitelist=loadWhitelist();
+if(data.records.length===0){showToast('暂无开奖记录可导出');return}
+
+const rows=data.records.map(function(r){
+const prize=PRIZES.find(function(p){return p.id===r.prizeId});
+const winner=whitelist.find(function(w){return w.phone===r.phone});
+return{
+'序号':r.prizeId||'-',
+'姓名':r.name||'-',
+'手机号':r.phone||'-',
+'部门':r.dept||'-',
+'奖品编号':prize?prize.id:'-',
+'奖品名称':prize?prize.name:'-',
+'奖品图标':prize?prize.icon:'-',
+'开奖时间':r.time||'-'
+};
+});
+
+const ws=XLSX.utils.json_to_sheet(rows);
+const wb=XLSX.utils.book_new();
+XLSX.utils.book_append_sheet(wb,ws,'开奖记录');
+
+// 设置列宽
+ws['!cols']=[{wch:8},{wch:12},{wch:15},{wch:15},{wch:10},{wch:20},{wch:10},{wch:20}];
+
+XLSX.writeFile(wb,'穗华盲盒开奖记录_'+new Date().toISOString().split('T')[0]+'.xlsx');
+showToast('✅ Excel导出成功');
+}
+
+// ========== 奖品概率配置 ==========
+function renderPrizeProbConfig(){
+const probs=loadPrizeProb();
+const container=document.getElementById('prizeProbList');
+let html='';
+let totalWeight=0;
+PRIZES.forEach(function(p){
+const w=probs?probs[p.id]:10;
+totalWeight+=w;
+html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:10px;background:rgba(255,255,255,.04);border-radius:10px">';
+html+='<div style="font-size:24px;width:36px;text-align:center">'+p.icon+'</div>';
+html+='<div style="flex:1;min-width:0">';
+html+='<div style="font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+p.name+'</div>';
+html+='<div style="font-size:11px;color:rgba(255,255,255,.4)">权重: <span id="probVal'+p.id+'">'+w+'</span></div>';
+html+='</div>';
+html+='<div style="display:flex;align-items:center;gap:6px">';
+html+='<input type="range" id="probRange'+p.id+'" min="0" max="100" value="'+w+'" style="width:80px" oninput="document.getElementById(\'probVal'+p.id+'\').textContent=this.value">';
+html+='<input type="number" id="probNum'+p.id+'" value="'+w+'" min="0" max="100" style="width:50px;padding:6px 8px;font-size:13px;text-align:center" oninput="document.getElementById(\'probRange'+p.id+'\').value=this.value;document.getElementById(\'probVal'+p.id+'\').textContent=this.value">';
+html+='</div>';
+html+='</div>';
+});
+container.innerHTML=html;
+const statusEl=document.getElementById('prizeProbStatus');
+if(statusEl)statusEl.textContent='当前总权重: '+totalWeight+'（权重越大中奖概率越高）';
+}
+
+function savePrizeProbConfig(){
+const probs={};
+let totalWeight=0;
+PRIZES.forEach(function(p){
+const val=parseInt(document.getElementById('probNum'+p.id).value)||0;
+probs[p.id]=val;
+totalWeight+=val;
+});
+if(totalWeight===0){showToast('⚠️ 总权重不能为0');return}
+savePrizeProb(probs);
+renderPrizeProbConfig();
+showToast('✅ 奖品概率已保存');
+}
+
+function resetPrizeProb(){
+if(!confirm('确定恢复默认概率（每个奖品权重10）？'))return;
+savePrizeProb(null);
+renderPrizeProbConfig();
+showToast('✅ 已恢复默认概率');
+}
+
+function handleLogout(){showPage('verify');showToast('已退出管理后台')}
+
+// ========== 一键清空开奖记录 ==========
+function clearRecords(){
+if(!confirm('确定清空所有开奖记录？\n\n此操作不可撤销，所有员工将可以重新参与抽奖。\n白名单、时间设置、概率配置等其他设置不受影响。'))return;
+const data=loadData();
+data.records=[];
+saveData(data);
+updateAdminPanel();
+showToast('✅ 开奖记录已清空，可重新开始');
+}
+
+// 初始化
+initParticles();
+startCountdown();
+</script>
+</body>
+</html>
