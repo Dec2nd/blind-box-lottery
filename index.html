@@ -121,7 +121,9 @@ animation:subtitle-breathe 3s ease-in-out infinite;
 50%{box-shadow:0 4px 25px rgba(230,57,70,.6),0 0 20px rgba(244,162,97,.3)}
 }
 .btn-gold{background:linear-gradient(135deg,#f4a261,#ffd700,#f4a261);background-size:200% auto;color:#1a1a2e;box-shadow:0 4px 20px rgba(244,162,97,.5);animation:shimmer 3s linear infinite}
+.btn-gold:hover{box-shadow:0 4px 30px rgba(244,162,97,.8)}
 .btn-outline{background:transparent;border:1px solid rgba(255,255,255,.3);color:#fff}
+.btn-outline:hover{background:rgba(255,255,255,.08)}
 .btn-outline:active{background:rgba(255,255,255,.1)}
 .btn-sm{padding:10px 16px;font-size:13px;width:auto}
 .blind-box-section{display:flex;flex-direction:column;align-items:center;width:100%}
@@ -356,6 +358,9 @@ animation:subtitle-breathe 3s ease-in-out infinite;
         </div>
       </div>
       <p class="box-hint" id="boxHint">👆 点击盲盒，开启你的幸运！</p>
+      <div style="margin-top:12px">
+        <button class="btn btn-outline" onclick="handleBack()">← 返回验证</button>
+      </div>
     </div>
   </div>
 
@@ -798,7 +803,7 @@ setTimeout(function(){c.innerHTML=''},5000);
 }
 
 // ========== Toast ==========
-function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2000)}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(showToast._timer);showToast._timer=setTimeout(function(){t.classList.remove('show')},msg.startsWith('✅')||msg.startsWith('❌')?3000:2000)}
 function showPage(id){document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});document.getElementById('page-'+id).classList.add('active')}
 
 // ========== 倒计时 ==========
@@ -1062,7 +1067,7 @@ return PRIZES[PRIZES.length-1];
 let isOpening=false;
 
 function displayResult(prize){
-document.getElementById('resultWinnerName').textContent='🎉 '+currentUser.name;
+document.getElementById('resultWinnerName').textContent='🎉 '+currentUser.name+' 🎊';
 document.getElementById('resultPrizeName').textContent=prize.name;
 document.getElementById('resultIcon').textContent=prize.icon;
 document.getElementById('resultDesc').innerHTML='<div class="desc-title">📖 奖品内容与使用规则：</div>'+prize.desc.replace(/\n/g,'<br>');
@@ -1073,7 +1078,7 @@ showPage('result');
 }
 
 function handleShare(){showToast('📸 请截图分享到全员奋斗群！');setTimeout(function(){showToast('💡 长按屏幕或使用手机截屏快捷键')},2500)}
-function handleBack(){currentUser=null;isOpening=false;document.getElementById('userPhone').value='';document.getElementById('userName').value='';showPage('verify')}
+function handleBack(){currentUser=null;isOpening=false;document.getElementById('userPhone').value='';document.getElementById('userName').value='';const h=document.getElementById('boxHint');if(h)h.textContent='👆 点击盲盒，开启你的幸运！';showPage('verify')}
 
 // ========== 管理员 ==========
 function handleAdminClick(){document.getElementById('adminModal').classList.add('active');setTimeout(function(){document.getElementById('adminPassword').focus()},300)}
