@@ -393,6 +393,33 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hira
         <label>Webhook 地址</label>
         <input type="text" id="webhookUrl" placeholder="https://qyapi.weixin.qq.com/cgi-bin/wedoc/smartsheet/webhook?key=xxx">
       </div>
+      <div style="background:rgba(244,162,97,.1);border:1px solid rgba(244,162,97,.3);border-radius:12px;padding:12px;margin-bottom:12px;font-size:12px;color:rgba(255,255,255,.7);line-height:1.8">
+        💡 <strong>字段ID配置</strong>：在企微智能表格打开文档，按 F12 打开开发者工具 → Console → 粘贴以下代码获取字段ID：<br>
+        <code style="background:rgba(0,0,0,.3);padding:2px 6px;border-radius:4px;word-break:break-all">console.log(JSON.stringify(window.__WEDOC_SCHEMA__||window.__fields__))</code><br>
+        或直接参考文档示例：时间=fgL1mX, 姓名=fuK3Uz, 手机号=fo7dkn, 奖品编号=fNAJ81, 奖品=fh9S6i
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+        <div class="input-group" style="margin-bottom:0">
+          <label>📅 时间字段ID</label>
+          <input type="text" id="fieldTime" placeholder="如: fgL1mX">
+        </div>
+        <div class="input-group" style="margin-bottom:0">
+          <label>👤 姓名字段ID</label>
+          <input type="text" id="fieldName" placeholder="如: fuK3Uz">
+        </div>
+        <div class="input-group" style="margin-bottom:0">
+          <label>📱 手机号字段ID</label>
+          <input type="text" id="fieldPhone" placeholder="如: fo7dkn">
+        </div>
+        <div class="input-group" style="margin-bottom:0">
+          <label>🏷️ 奖品编号字段ID</label>
+          <input type="text" id="fieldPrizeId" placeholder="如: fNAJ81">
+        </div>
+        <div class="input-group" style="margin-bottom:0">
+          <label>🎁 奖品字段ID</label>
+          <input type="text" id="fieldPrize" placeholder="如: fh9S6i">
+        </div>
+      </div>
       <div style="display:flex;gap:12px">
         <button class="btn btn-primary btn-sm" onclick="handleSaveWebhook()">💾 保存</button>
         <button class="btn btn-outline btn-sm" onclick="handleTestWebhook()">🧪 测试</button>
@@ -529,7 +556,7 @@ function loadWhitelist(){try{const raw=localStorage.getItem(WHITELIST_KEY);retur
 function saveWhitelistData(data){localStorage.setItem(WHITELIST_KEY,JSON.stringify(data));syncSettingToCloud('whitelist',data)}
 function loadWhitelistEnabled(){try{const raw=localStorage.getItem(WHITELIST_ENABLED_KEY);return raw==='true'}catch(e){return false}}
 function saveWhitelistEnabled(v){localStorage.setItem(WHITELIST_ENABLED_KEY,v?'true':'false');syncSettingToCloud('whitelist_enabled',v)}
-function loadWebhook(){try{const raw=localStorage.getItem(WEBCONFIG_KEY);return raw?JSON.parse(raw):{url:'',enabled:false}}catch(e){return{url:'',enabled:false}}}
+function loadWebhook(){try{const raw=localStorage.getItem(WEBCONFIG_KEY);return raw?JSON.parse(raw):{url:'',enabled:false,fields:{}}}catch(e){return{url:'',enabled:false,fields:{}}}}
 function saveWebhook(data){localStorage.setItem(WEBCONFIG_KEY,JSON.stringify(data));syncSettingToCloud('webhook',data)}
 function loadLotteryTime(){try{const raw=localStorage.getItem(LOTTERY_TIME_KEY);return raw?JSON.parse(raw):{start:'',end:''}}catch(e){return{start:'',end:''}}}
 function saveLotteryTimeData(data){localStorage.setItem(LOTTERY_TIME_KEY,JSON.stringify(data));syncSettingToCloud('lottery_time',data)}
@@ -977,7 +1004,7 @@ showToast('白名单已清空');
 
 function saveManualWhitelist(){showToast('✅ 白名单已保存');}
 
-function loadWebhookConfig(){const wh=loadWebhook();document.getElementById('webhookUrl').value=wh.url||''}
+function loadWebhookConfig(){const wh=loadWebhook();document.getElementById('webhookUrl').value=wh.url||'';const f=wh.fields||{};document.getElementById('fieldTime').value=f.time||'fgL1mX';document.getElementById('fieldName').value=f.name||'fuK3Uz';document.getElementById('fieldPhone').value=f.phone||'fo7dkn';document.getElementById('fieldPrizeId').value=f.prizeId||'fNAJ81';document.getElementById('fieldPrize').value=f.prize||'fh9S6i'}
 
 // ========== 抽奖时间配置 ==========
 function loadLotteryTimeConfig(){
@@ -1121,7 +1148,14 @@ updateAdminPanel();
 function handleSaveWebhook(){
 const url=document.getElementById('webhookUrl').value.trim();
 const enabled=!!url;
-saveWebhook({url:url,enabled:enabled});
+const fields={
+  time:document.getElementById('fieldTime').value.trim(),
+  name:document.getElementById('fieldName').value.trim(),
+  phone:document.getElementById('fieldPhone').value.trim(),
+  prizeId:document.getElementById('fieldPrizeId').value.trim(),
+  prize:document.getElementById('fieldPrize').value.trim()
+};
+saveWebhook({url:url,enabled:enabled,fields:fields});
 if(!url){showToast('⚠️ 请先填写Webhook地址');return}
 showToast('✅ Webhook配置已保存');
 const el=document.getElementById('webhookStatus');if(el){el.textContent='✅ 已保存，开启自动回传后生效';el.style.color='#81c784'}
@@ -1131,6 +1165,21 @@ async function handleTestWebhook(){
 const wh=loadWebhook();const url=wh.url||document.getElementById('webhookUrl').value.trim();
 if(!url){showToast('⚠️ 请先填写Webhook地址');return}
 const el=document.getElementById('webhookStatus');if(el){el.textContent='🔄 测试中...';el.style.color='#ffd700'}
+const f=(wh.fields||{});
+// 构建测试 payload（包含时间字段）
+const schema={};
+if(f.time) schema[f.time]='时间';
+if(f.name) schema[f.name]='姓名';
+if(f.phone) schema[f.phone]='手机号';
+if(f.prizeId) schema[f.prizeId]='奖品编号';
+if(f.prize) schema[f.prize]='奖品';
+const values={};
+if(f.time) values[f.time]=Date.now().toString();
+if(f.name) values[f.name]='测试用户';
+if(f.phone) values[f.phone]='13800138000';
+if(f.prizeId) values[f.prizeId]='1';
+if(f.prize) values[f.prize]='测试奖品';
+const payload={schema:schema,add_records:[{values:values}]};
 try{
 // 通过 Worker 代理转发，避免前端 CORS 问题
 const resp=await fetch(API_BASE+'/api/webhook',{
@@ -1138,7 +1187,7 @@ const resp=await fetch(API_BASE+'/api/webhook',{
   headers:{'Content-Type':'application/json'},
   body:JSON.stringify({
     webhookUrl:url,
-    payload:{add_records:[{values:{}}]}
+    payload:payload
   })
 });
 const data=await resp.json();
@@ -1158,22 +1207,26 @@ if(data.success&&data.result&&data.result.errcode===0){
 async function sendWebhook(record){
 const wh=loadWebhook();if(!wh.enabled||!wh.url)return false;
 const prize=PRIZES.find(function(p){return p.id===record.prizeId});
-// 企微智能表格 webhook 使用字段ID（非列名），值为纯文本字符串
+const f=(wh.fields||{});
+// 获取当前时间戳（毫秒级，与企微示例一致）
+const nowMs = Date.now().toString();
+// 构建 schema（只包含用户配置的字段ID）
+const schema={};
+if(f.time) schema[f.time]='时间';
+if(f.name) schema[f.name]='姓名';
+if(f.phone) schema[f.phone]='手机号';
+if(f.prizeId) schema[f.prizeId]='奖品编号';
+if(f.prize) schema[f.prize]='奖品';
+// 构建 values
+const values={};
+if(f.time) values[f.time]=nowMs;
+if(f.name) values[f.name]=record.name||'';
+if(f.phone) values[f.phone]=record.phone||'';
+if(f.prizeId) values[f.prizeId]=String(record.prizeId||'');
+if(f.prize) values[f.prize]=prize?prize.name:'';
 const payload={
-  schema:{
-    "fuK3Uz":"姓名",
-    "fo7dkn":"手机号",
-    "fNAJ81":"奖品编号",
-    "fh9S6i":"奖品"
-  },
-  add_records:[{
-    values:{
-      "fuK3Uz": record.name||'',
-      "fo7dkn": record.phone||'',
-      "fNAJ81": String(record.prizeId||''),
-      "fh9S6i": prize?prize.name:''
-    }
-  }]
+  schema:schema,
+  add_records:[{values:values}]
 };
 try{
 const resp=await fetch(API_BASE+'/api/webhook',{
