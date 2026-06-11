@@ -1532,23 +1532,25 @@ container.innerHTML=html;
 updateProbStatus(totalWeight);
 }
 
-// 调整某个奖品概率时，仅更新当前输入框，不自动分配
+// 调整某个奖品概率时，自动等比例调整其他奖品
 function handleProbChange(id,newVal){
 newVal=Math.max(0,Math.min(100,parseInt(newVal)||0));
 // 更新对应的数值输入框或滑块
 const numEl=document.getElementById('probNum'+id);
 const rangeEl=document.getElementById('probRange'+id);
 const valEl=document.getElementById('probVal'+id);
-if(numEl&&numEl!==document.activeElement) numEl.value=newVal;
-if(rangeEl&&rangeEl!==document.activeElement) rangeEl.value=newVal;
+if(numEl) numEl.value=newVal;
+if(rangeEl) rangeEl.value=newVal;
 if(valEl) valEl.textContent=newVal;
-// 重新计算总概率
-const probs=loadPrizeProb()||{};
+
+// 计算当前总概率（显示用，不保存）
 const PRIZES_LOCAL=getPrizes();
-let totalWeight=0;
+let totalWeight=newVal;
 PRIZES_LOCAL.forEach(function(p){
-  if(p.id===id) totalWeight+=newVal;
-  else totalWeight+=(probs[p.id]!==undefined?probs[p.id]:Math.floor(100/PRIZES_LOCAL.length));
+  if(p.id!==id){
+    const saved=loadPrizeProb();
+    totalWeight+=(saved&&saved[p.id]!==undefined)?saved[p.id]:Math.floor(100/PRIZES_LOCAL.length);
+  }
 });
 updateProbStatus(totalWeight);
 }
@@ -1564,15 +1566,44 @@ if(statusEl){
 
 function savePrizeProbConfig(){
 PRIZES=getPrizes();
-const probs={};
-let totalWeight=0;
+if(PRIZES.length===0){showToast('⚠️ 至少需要1个奖品');return}
+// 从输入框读取所有奖品概率
+const rawProbs={};
+let rawTotal=0;
 PRIZES.forEach(function(p){
 const val=parseInt(document.getElementById('probNum'+p.id).value)||0;
-probs[p.id]=val;
-totalWeight+=val;
+rawProbs[p.id]=val;
+rawTotal+=val;
 });
-if(totalWeight!==100){showToast('⚠️ 总概率必须为100%，当前为'+totalWeight+'%，请手动调整或使用"均分概率"按钮');return}
-if(PRIZES.length===0){showToast('⚠️ 至少需要1个奖品');return}
+
+// 如果总和=0，均分
+if(rawTotal===0){
+const equalVal=Math.floor(100/PRIZES.length);
+const probs={};
+PRIZES.forEach(function(p){probs[p.id]=equalVal});
+let diff=100-Object.values(probs).reduce(function(a,b){return a+b},0);
+if(diff!==0) probs[PRIZES[0].id]+=diff;
+savePrizeProb(probs);
+renderPrizeProbConfig();
+showToast('✅ 已均分概率并同步到云端');
+return;
+}
+
+// 如果总和≠100，自动归一化
+const probs={};
+PRIZES.forEach(function(p){
+probs[p.id]=Math.round(rawProbs[p.id]/rawTotal*100);
+});
+// 修正舍入误差，确保总和=100
+let total=Object.values(probs).reduce(function(a,b){return a+b},0);
+let diff=100-total;
+if(diff!==0){
+// 找到权重最大的奖品来修正
+let maxIdx=0,maxVal=0;
+PRIZES.forEach(function(p,i){if(probs[p.id]>maxVal){maxVal=probs[p.id];maxIdx=i}});
+probs[PRIZES[maxIdx].id]+=diff;
+}
+
 savePrizeProb(probs);
 renderPrizeProbConfig();
 showToast('✅ 奖品概率已保存并同步到云端');
