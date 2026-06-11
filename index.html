@@ -360,9 +360,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hira
           <tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,.3);padding:20px">暂无开奖记录</td></tr>
         </tbody>
       </table>
-      <div style="margin-top:12px">
+      <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" onclick="syncAllRecordsToWebhook()" style="border-color:rgba(76,175,80,.4);color:#81c784">🔄 一键同步所有记录到企微文档</button>
         <button class="btn btn-outline btn-sm" onclick="clearRecords()" style="border-color:rgba(230,57,70,.4);color:#e76f51">🗑️ 一键清空开奖记录（重新开始）</button>
       </div>
+      <div id="syncAllStatus" style="margin-top:8px;font-size:12px;color:rgba(255,255,255,.5)"></div>
     </div>
 
     <div class="admin-actions">
@@ -1001,6 +1003,41 @@ const resp=await fetch(API_BASE+'/api/webhook',{
 const data=await resp.json();
 return data.success&&data.result&&data.result.errcode===0;
 }catch(e){console.error(e);return false}
+}
+
+// ========== 一键同步所有记录到企微文档 ==========
+async function syncAllRecordsToWebhook(){
+const wh=loadWebhook();
+if(!wh.enabled||!wh.url){showToast('⚠️ 请先配置并启用Webhook');return}
+const statusEl=document.getElementById('syncAllStatus');
+// 优先从云端加载记录
+let records=[];
+try{
+const resp=await fetch(API_BASE+'/api/records',{headers:{'Authorization':'Bearer '+ADMIN_TOKEN}});
+const cloudData=await resp.json();
+if(cloudData.records&&cloudData.records.length>0){
+records=cloudData.records.map(function(r){return{name:r.name,phone:r.phone,prizeId:r.prize_id,time:r.time}});
+}
+}catch(e){console.warn('云端加载失败，使用本地记录:',e)}
+// 如果云端没有，用本地数据
+if(records.length===0){
+const localData=loadData();
+records=localData.records;
+}
+if(records.length===0){showToast('暂无开奖记录可同步');return}
+if(!confirm('确定将 '+records.length+' 条记录全部同步到企微文档？\n已有数据可能会重复。'))return;
+if(statusEl){statusEl.textContent='🔄 正在同步 0/'+records.length+'...';statusEl.style.color='#ffd700'}
+let success=0,fail=0;
+for(let i=0;i<records.length;i++){
+const r=records[i];
+const ok=await sendWebhook(r);
+if(ok){success++}else{fail++}
+if(statusEl){statusEl.textContent='🔄 正在同步 '+(i+1)+'/'+records.length+'（成功'+success+' 失败'+fail+'）'}
+// 每发送一条间隔300ms，避免触发频率限制
+await new Promise(function(res){setTimeout(res,300)});
+}
+if(statusEl){statusEl.textContent='✅ 同步完成：成功 '+success+' 条，失败 '+fail+' 条';statusEl.style.color='#81c784'}
+showToast('✅ 同步完成：成功 '+success+' 条，失败 '+fail+' 条');
 }
 
 // ========== 导出Excel（使用SheetJS） ==========
