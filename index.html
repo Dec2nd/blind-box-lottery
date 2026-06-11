@@ -342,8 +342,8 @@ animation:subtitle-breathe 3s ease-in-out infinite;
   <div class="page" id="page-blindbox">
     <div class="blind-box-section">
       <div class="card" style="text-align:center;padding:20px">
-        <p class="desc" style="margin-bottom:4px">🎯 恭喜中奖！</p>
-        <p class="desc small" id="boxUserName" style="color:var(--gold);font-weight:600;margin-bottom:0"></p>
+        <p class="desc" style="margin-bottom:4px">🎯 恭喜猜中销冠！</p>
+        <p class="desc small" id="boxUserName" style="color:var(--gold);font-weight:600;margin-bottom:0">🎁</p>
       </div>
       <div class="box-wrapper" id="boxWrapper" onclick="handleOpenBox()">
         <div class="box-glow"></div>
@@ -363,6 +363,7 @@ animation:subtitle-breathe 3s ease-in-out infinite;
     <div class="result-section">
       <div class="result-card" id="resultCard">
         <div class="result-label">🎊 恭喜您获得的盲盒福利 🎊</div>
+        <div style="font-size:16px;color:var(--gold);font-weight:700;margin-bottom:8px" id="resultWinnerName"></div>
         <div class="result-name" id="resultPrizeName"></div>
         <div class="result-icon" id="resultIcon"></div>
         <div class="result-desc" id="resultDesc"></div>
@@ -1058,6 +1059,7 @@ return PRIZES[PRIZES.length-1];
 let isOpening=false;
 
 function displayResult(prize){
+document.getElementById('resultWinnerName').textContent='🎉 '+currentUser.name;
 document.getElementById('resultPrizeName').textContent=prize.name;
 document.getElementById('resultIcon').textContent=prize.icon;
 document.getElementById('resultDesc').innerHTML='<div class="desc-title">📖 奖品内容与使用规则：</div>'+prize.desc.replace(/\n/g,'<br>');
