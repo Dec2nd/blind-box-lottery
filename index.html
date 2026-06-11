@@ -266,6 +266,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hira
     <div class="card">
       <h2>🔑 安全管理</h2>
       <p class="desc small">修改管理员登录密码（前端+云端同步）</p>
+
+      <!-- 当前云端密码 -->
+      <div style="background:rgba(0,0,0,.2);border-radius:12px;padding:14px;margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:13px;color:rgba(255,255,255,.7)">当前云端密码：</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span id="currentCloudPassword" style="font-size:14px;font-weight:600;color:var(--gold);letter-spacing:1px;font-family:monospace">⏳ 加载中...</span>
+            <button class="btn btn-outline btn-sm" style="width:auto;padding:6px 12px;font-size:11px" onclick="refreshCloudPassword()">🔄 刷新</button>
+          </div>
+        </div>
+      </div>
+
       <div class="input-group">
         <label>新管理密码</label>
         <input type="password" id="newAdminPassword" placeholder="输入新密码">
@@ -1433,6 +1445,25 @@ function changeAdminPassword(){
     statusEl.style.color='#ef5350';
   });
 }
+
+// ========== 刷新云端密码显示 ==========
+function refreshCloudPassword(){
+  const el=document.getElementById('currentCloudPassword');
+  el.textContent='⏳ 加载中...';el.style.color='rgba(255,255,255,.5)';
+  fetch(API_BASE+'/api/admin/password',{
+    headers:{'Authorization':'Bearer '+ADMIN_TOKEN}
+  }).then(function(r){return r.json()}).then(function(res){
+    if(res.password!==undefined){
+      el.textContent=res.password;el.style.color='var(--gold)';
+      showToast('✅ 云端密码已更新：'+res.password);
+    }else{
+      el.textContent='❌ 获取失败';el.style.color='#ef5350';
+    }
+  }).catch(function(){
+    el.textContent='❌ 网络错误';el.style.color='#ef5350';
+  });
+}
+
 // ========== 首页内容编辑 ==========
 function loadHomeContentConfig(){
 const cfg=loadHomeContent();
