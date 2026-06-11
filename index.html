@@ -965,9 +965,24 @@ if(data.success&&data.result&&data.result.errcode===0){
 async function sendWebhook(record){
 const wh=loadWebhook();if(!wh.enabled||!wh.url)return false;
 const prize=PRIZES.find(function(p){return p.id===record.prizeId});
-const payload={add_records:[{values:{'内容':[{type:'text',text:'姓名:'+record.name+'|手机:'+record.phone+'|部门:'+record.dept+'|奖品:'+(prize?prize.name:'-')+'|时间:'+record.time}]}}]};
+// 企微智能表格 webhook 使用字段ID（非列名），值为纯文本字符串
+const payload={
+  schema:{
+    "fuK3Uz":"姓名",
+    "fo7dkn":"手机号",
+    "fNAJ81":"奖品编号",
+    "fh9S6i":"奖品"
+  },
+  add_records:[{
+    values:{
+      "fuK3Uz": record.name||'',
+      "fo7dkn": record.phone||'',
+      "fNAJ81": String(record.prizeId||''),
+      "fh9S6i": prize?prize.name:''
+    }
+  }]
+};
 try{
-// 通过 Worker 代理转发，避免前端 CORS 问题
 const resp=await fetch(API_BASE+'/api/webhook',{
   method:'POST',
   headers:{'Content-Type':'application/json'},
