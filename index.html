@@ -1156,9 +1156,39 @@ updateAdminPanel();
 showToast('✅ 开奖记录已清空（云端+本地），可重新开始');
 }
 
+// ========== 页面加载时自动与云端同步 ==========
+function syncLocalWithCloud(){
+fetch(API_BASE+'/api/records',{
+  headers:{'Authorization':'Bearer '+ADMIN_TOKEN}
+}).then(function(r){return r.json()}).then(function(cloudData){
+  var cloudRecords=cloudData.records||[];
+  var localData=loadData();
+  // 如果云端为空，清除本地旧记录
+  if(cloudRecords.length===0&&localData.records.length>0){
+    localData.records=[];
+    saveData(localData);
+    console.log('☁️ 云端已清空，已自动清除本地缓存记录');
+  }else if(cloudRecords.length>0){
+    // 云端有数据，合并到本地（补充本地没有的）
+    var localPhones=new Set(localData.records.map(function(r){return r.phone}));
+    var hasNew=false;
+    cloudRecords.forEach(function(r){
+      if(!localPhones.has(r.phone)){
+        localData.records.push({name:r.name,phone:r.phone,dept:r.dept||'',prizeId:r.prize_id,time:r.time});
+        hasNew=true;
+      }
+    });
+    if(hasNew)saveData(localData);
+  }
+}).catch(function(err){
+  console.warn('云端同步失败（不影响使用）:',err);
+});
+}
+
 // 初始化
 initParticles();
 startCountdown();
+syncLocalWithCloud();
 </script>
 </body>
 </html>
