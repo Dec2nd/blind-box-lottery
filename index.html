@@ -340,14 +340,37 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hira
     </div>
 
     <div class="card">
-      <h2>🎲 奖品概率设置</h2>
-      <p class="desc small">调整每个奖品的中奖权重，权重越高中奖概率越大（默认每个10）</p>
+      <h2>🎲 奖品库管理</h2>
+      <p class="desc small">管理奖品列表及中奖概率，所有奖品权重总和必须为 100%</p>
       <div id="prizeProbList" style="margin-bottom:12px">
-        <!-- 动态生成概率输入 -->
+        <!-- 动态生成奖品列表 -->
       </div>
-      <div style="display:flex;gap:12px">
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
         <button class="btn btn-primary btn-sm" onclick="savePrizeProbConfig()">💾 保存概率</button>
-        <button class="btn btn-outline btn-sm" onclick="resetPrizeProb()">🔄 恢复默认</button>
+        <button class="btn btn-outline btn-sm" onclick="resetPrizeProb()">🔄 均分概率</button>
+        <button class="btn btn-outline btn-sm" onclick="showAddPrizeForm()" style="border-color:rgba(76,175,80,.4);color:#81c784">➕ 添加奖品</button>
+      </div>
+      <!-- 添加奖品表单（默认隐藏） -->
+      <div id="addPrizeForm" style="display:none;margin-top:12px;padding:16px;background:rgba(255,255,255,.06);border-radius:12px;border:1px solid rgba(255,255,255,.1)">
+        <div style="font-size:14px;font-weight:600;color:var(--gold);margin-bottom:12px">➕ 添加新奖品</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+          <div class="input-group" style="flex:1;min-width:80px;margin-bottom:0">
+            <label>图标（emoji）</label>
+            <input type="text" id="newPrizeIcon" placeholder="🎁" maxlength="4" style="padding:8px 10px;font-size:18px;text-align:center">
+          </div>
+          <div class="input-group" style="flex:2;min-width:120px;margin-bottom:0">
+            <label>奖品名称</label>
+            <input type="text" id="newPrizeName" placeholder="请输入奖品名称" maxlength="20" style="padding:8px 10px;font-size:13px">
+          </div>
+        </div>
+        <div class="input-group" style="margin-bottom:8px">
+          <label>奖品描述与使用规则</label>
+          <textarea id="newPrizeDesc" placeholder="请输入奖品描述和使用规则" style="min-height:60px;padding:8px 10px;font-size:13px"></textarea>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary btn-sm" onclick="addNewPrize()">✅ 确认添加</button>
+          <button class="btn btn-outline btn-sm" onclick="hideAddPrizeForm()">取消</button>
+        </div>
       </div>
       <div id="prizeProbStatus" style="margin-top:12px;font-size:12px;color:rgba(255,255,255,.5)"></div>
     </div>
@@ -378,8 +401,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hira
 
 <script src="https://cdn.bootcdn.net/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-// ========== 奖项配置 ==========
-const PRIZES=[
+// ========== 奖项配置（默认奖品，可通过后台增删改） ==========
+const DEFAULT_PRIZES=[
 {id:1,name:'超级加倍券',icon:'💰',group:'一、欧皇附体（奖金加成类）',desc:'本周分得的"销冠竞猜奖"奖金直接 x2 倍发放！\n\n例如分到30元，直接发60元。\n\n规则：随本周奖金一同由主管发放。'},
 {id:2,name:'下周"双份押注"卡',icon:'🎯',group:'一、欧皇附体（奖金加成类）',desc:'下周参与销冠竞猜时，若猜中则个人可分得 2 份奖金池份额。\n\n规则：仅限下周单次有效。'},
 {id:3,name:'免死金牌·复活卡',icon:'🛡️',group:'一、欧皇附体（奖金加成类）',desc:'如果下周猜错了销冠，凭此卡依然可以强行加入下周的平分奖金池。\n\n规则：仅限使用1次，让非酋也能逆袭。'},
@@ -391,6 +414,15 @@ const PRIZES=[
 {id:9,name:'绩效守护金牌',icon:'🏅',group:'三、职场通用（日常解压类）',desc:'当月个人绩效考核得分低于 90 分时方可激活使用，直接加 5 分。\n\n规则：仅限抵扣日常行政、仪容仪表等非严重违规扣分；最高加至 95 分。'},
 {id:10,name:'免开非重要会议券',icon:'📋',group:'三、职场通用（日常解压类）',desc:'可豁免参加一次科室/部门的日常夕会或常规行政总结会议。\n\n规则：30天内有效，核心医疗大交班、医疗安全会议、全院大会不可免除。'}
 ];
+const CUSTOM_PRIZES_KEY='suihua_custom_prizes';
+// PRIZES 动态读取：优先用自定义，否则用默认
+function getPrizes(){
+  try{const raw=localStorage.getItem(CUSTOM_PRIZES_KEY);if(raw){const arr=JSON.parse(raw);if(arr.length>0)return arr}}catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULT_PRIZES));
+}
+function saveCustomPrizes(prizes){localStorage.setItem(CUSTOM_PRIZES_KEY,JSON.stringify(prizes))}
+// 兼容旧代码中直接引用 PRIZES 的地方
+var PRIZES=getPrizes();
 
 const STORAGE_KEY='suihua_blindbox';
 const WHITELIST_KEY='suihua_whitelist';
@@ -664,23 +696,26 @@ container.appendChild(star);
 setTimeout(function(){container.innerHTML=''},1500);
 }
 
-// ========== 加权随机抽奖 ==========
+// ========== 加权随机抽奖（百分比权重） ==========
 function drawPrizeByWeight(){
+PRIZES=getPrizes();
 const probs=loadPrizeProb();
-// 如果没有配置概率，使用默认权重（每个奖品10%）
-if(!probs){
-const prizeIndex=Math.floor(Math.random()*10);
-return PRIZES[prizeIndex];
+// 如果没有配置概率，均分
+let weights=PRIZES.map(function(p){return probs?probs[p.id]:Math.floor(100/PRIZES.length)});
+// 确保总权重为100
+let total=weights.reduce(function(a,b){return a+b},0);
+if(total!==100){
+  // 按比例缩放到100
+  weights=weights.map(function(w){return Math.round(w/total*100)});
+  // 修正舍入误差
+  let diff=100-weights.reduce(function(a,b){return a+b},0);
+  if(diff!==0){
+    let maxIdx=0;
+    weights.forEach(function(w,i){if(w>weights[maxIdx])maxIdx=i});
+    weights[maxIdx]+=diff;
+  }
 }
-// 计算总权重
-let totalWeight=0;
-const weights=PRIZES.map(function(p){
-const w=probs[p.id]||10;
-return w;
-});
-weights.forEach(function(w){totalWeight+=w});
-// 加权随机
-let random=Math.random()*totalWeight;
+let random=Math.random()*100;
 for(let i=0;i<PRIZES.length;i++){
 random-=weights[i];
 if(random<=0)return PRIZES[i];
@@ -1091,33 +1126,83 @@ XLSX.writeFile(wb,'穗华盲盒开奖记录_'+new Date().toISOString().split('T'
 showToast('✅ Excel导出成功');
 }
 
-// ========== 奖品概率配置 ==========
+// ========== 奖品库管理 ==========
 function renderPrizeProbConfig(){
+PRIZES=getPrizes();
 const probs=loadPrizeProb();
 const container=document.getElementById('prizeProbList');
 let html='';
 let totalWeight=0;
 PRIZES.forEach(function(p){
-const w=probs?probs[p.id]:10;
+const w=probs?probs[p.id]:Math.floor(100/PRIZES.length);
 totalWeight+=w;
 html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:10px;background:rgba(255,255,255,.04);border-radius:10px">';
 html+='<div style="font-size:24px;width:36px;text-align:center">'+p.icon+'</div>';
 html+='<div style="flex:1;min-width:0">';
 html+='<div style="font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+p.name+'</div>';
-html+='<div style="font-size:11px;color:rgba(255,255,255,.4)">权重: <span id="probVal'+p.id+'">'+w+'</span></div>';
+html+='<div style="font-size:11px;color:rgba(255,255,255,.4)">概率: <span id="probVal'+p.id+'">'+w+'</span>%</div>';
 html+='</div>';
 html+='<div style="display:flex;align-items:center;gap:6px">';
-html+='<input type="range" id="probRange'+p.id+'" min="0" max="100" value="'+w+'" style="width:80px" oninput="document.getElementById(\'probVal'+p.id+'\').textContent=this.value">';
-html+='<input type="number" id="probNum'+p.id+'" value="'+w+'" min="0" max="100" style="width:50px;padding:6px 8px;font-size:13px;text-align:center" oninput="document.getElementById(\'probRange'+p.id+'\').value=this.value;document.getElementById(\'probVal'+p.id+'\').textContent=this.value">';
+html+='<input type="range" id="probRange'+p.id+'" min="0" max="100" value="'+w+'" style="width:80px" oninput="handleProbChange('+p.id+',this.value)">';
+html+='<input type="number" id="probNum'+p.id+'" value="'+w+'" min="0" max="100" style="width:50px;padding:6px 8px;font-size:13px;text-align:center" oninput="handleProbChange('+p.id+',this.value)">';
+html+='<span style="font-size:11px;color:rgba(255,255,255,.3)">%</span>';
 html+='</div>';
+html+='<button class="btn btn-outline btn-sm" onclick="removePrize('+p.id+')" style="padding:6px 8px;font-size:11px;border-color:rgba(230,57,70,.3);color:#e76f51;min-width:auto" title="删除此奖品">🗑️</button>';
 html+='</div>';
 });
 container.innerHTML=html;
+updateProbStatus(totalWeight);
+}
+
+// 调整某个奖品概率时，自动分配差值给其他奖品
+function handleProbChange(changedId,newVal){
+newVal=Math.max(0,Math.min(100,parseInt(newVal)||0));
+PRIZES=getPrizes();
+const probs=loadPrizeProb()||{};
+// 先计算当前除 changedId 外其他奖品的权重总和
+let otherTotal=0;
+PRIZES.forEach(function(p){if(p.id!==changedId){otherTotal+=(probs[p.id]||Math.floor(100/PRIZES.length))}});
+// 差值需要由其他奖品分担
+const diff=(probs[changedId]||Math.floor(100/PRIZES.length))-newVal;
+if(diff===0){probs[changedId]=newVal;savePrizeProb(probs);renderPrizeProbConfig();return}
+probs[changedId]=newVal;
+// 按比例分配差值给其他奖品
+const others=PRIZES.filter(function(p){return p.id!==changedId});
+if(others.length===0){savePrizeProb(probs);renderPrizeProbConfig();return}
+const otherWeights=others.map(function(p){return probs[p.id]||Math.floor(100/PRIZES.length)});
+const otherSum=otherWeights.reduce(function(a,b){return a+b},0);
+others.forEach(function(p,i){
+  if(otherSum>0){
+    const share=Math.round(diff*otherWeights[i]/otherSum);
+    probs[p.id]=Math.max(0,(probs[p.id]||Math.floor(100/PRIZES.length))-share);
+  }else{
+    probs[p.id]=Math.max(0,(probs[p.id]||Math.floor(100/PRIZES.length))-Math.round(diff/others.length));
+  }
+});
+// 修正舍入误差，确保总和=100
+let total=0;PRIZES.forEach(function(p){total+=(probs[p.id]||0)});
+if(total!==100){
+  const fix=100-total;
+  // 找到权重最大的其他奖品来修正
+  let maxP=null,maxW=0;
+  others.forEach(function(p){if((probs[p.id]||0)>maxW){maxW=probs[p.id]||0;maxP=p}});
+  if(maxP){probs[maxP.id]=Math.max(0,maxW+fix)}
+}
+savePrizeProb(probs);
+renderPrizeProbConfig();
+}
+
+function updateProbStatus(totalWeight){
 const statusEl=document.getElementById('prizeProbStatus');
-if(statusEl)statusEl.textContent='当前总权重: '+totalWeight+'（权重越大中奖概率越高）';
+const is100=totalWeight===100;
+if(statusEl){
+  statusEl.textContent='当前总概率: '+totalWeight+'%'+(is100?' ✅':' ⚠️ 必须等于100%');
+  statusEl.style.color=is100?'#81c784':'#e76f51';
+}
 }
 
 function savePrizeProbConfig(){
+PRIZES=getPrizes();
 const probs={};
 let totalWeight=0;
 PRIZES.forEach(function(p){
@@ -1125,17 +1210,77 @@ const val=parseInt(document.getElementById('probNum'+p.id).value)||0;
 probs[p.id]=val;
 totalWeight+=val;
 });
-if(totalWeight===0){showToast('⚠️ 总权重不能为0');return}
+if(totalWeight!==100){showToast('⚠️ 总概率必须为100%，当前为'+totalWeight+'%');return}
+if(PRIZES.length===0){showToast('⚠️ 至少需要1个奖品');return}
 savePrizeProb(probs);
 renderPrizeProbConfig();
 showToast('✅ 奖品概率已保存');
 }
 
 function resetPrizeProb(){
-if(!confirm('确定恢复默认概率（每个奖品权重10）？'))return;
-savePrizeProb(null);
+PRIZES=getPrizes();
+if(!confirm('确定将所有奖品概率均分（各'+Math.floor(100/PRIZES.length)+'%）？'))return;
+const probs={};
+PRIZES.forEach(function(p){probs[p.id]=Math.floor(100/PRIZES.length)});
+// 修正舍入误差
+let total=Object.values(probs).reduce(function(a,b){return a+b},0);
+let diff=100-total;
+if(diff!==0){probs[PRIZES[0].id]+=diff}
+savePrizeProb(probs);
 renderPrizeProbConfig();
-showToast('✅ 已恢复默认概率');
+showToast('✅ 已均分概率');
+}
+
+// ========== 添加奖品 ==========
+function showAddPrizeForm(){document.getElementById('addPrizeForm').style.display='block'}
+function hideAddPrizeForm(){document.getElementById('addPrizeForm').style.display='none'}
+function addNewPrize(){
+PRIZES=getPrizes();
+const icon=document.getElementById('newPrizeIcon').value.trim()||'🎁';
+const name=document.getElementById('newPrizeName').value.trim();
+const desc=document.getElementById('newPrizeDesc').value.trim()||'暂无描述';
+if(!name){showToast('⚠️ 请输入奖品名称');return}
+if(PRIZES.length>=20){showToast('⚠️ 最多支持20个奖品');return}
+// 生成新ID
+let maxId=0;PRIZES.forEach(function(p){if(p.id>maxId)maxId=p.id});
+const newPrize={id:maxId+1,name:name,icon:icon,group:'自定义奖品',desc:desc};
+PRIZES.push(newPrize);
+saveCustomPrizes(PRIZES);
+// 更新概率：均分
+const probs=loadPrizeProb()||{};
+const newProb=Math.floor(100/PRIZES.length);
+PRIZES.forEach(function(p){probs[p.id]=newProb});
+let total=Object.values(probs).reduce(function(a,b){return a+b},0);
+let diff=100-total;if(diff!==0)probs[PRIZES[0].id]+=diff;
+savePrizeProb(probs);
+// 清空表单
+document.getElementById('newPrizeIcon').value='';
+document.getElementById('newPrizeName').value='';
+document.getElementById('newPrizeDesc').value='';
+hideAddPrizeForm();
+renderPrizeProbConfig();
+showToast('✅ 已添加奖品：'+name);
+}
+
+// ========== 删除奖品 ==========
+function removePrize(id){
+PRIZES=getPrizes();
+const prize=PRIZES.find(function(p){return p.id===id});
+if(!prize)return;
+if(!confirm('确定删除奖品「'+prize.name+'」？\n\n删除后概率将自动重新均分。'))return;
+if(PRIZES.length<=1){showToast('⚠️ 至少需要保留1个奖品');return}
+PRIZES=PRIZES.filter(function(p){return p.id!==id});
+saveCustomPrizes(PRIZES);
+// 重新均分概率
+const probs=loadPrizeProb()||{};
+delete probs[id];
+const newProb=Math.floor(100/PRIZES.length);
+PRIZES.forEach(function(p){probs[p.id]=newProb});
+let total=Object.values(probs).reduce(function(a,b){return a+b},0);
+let diff=100-total;if(diff!==0)probs[PRIZES[0].id]+=diff;
+savePrizeProb(probs);
+renderPrizeProbConfig();
+showToast('✅ 已删除奖品：'+prize.name);
 }
 
 function handleLogout(){showPage('verify');showToast('已退出管理后台')}
