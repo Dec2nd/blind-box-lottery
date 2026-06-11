@@ -150,7 +150,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hira
 </div>
 
 <div class="container">
-  <div class="header">
+  <div class="header" id="homeHeader">
     <div class="logo">🎁</div>
     <h1 id="homeMainTitle">穗华口腔11周年院庆</h1>
     <div class="subtitle" id="homeSubTitle">预 言 家 锦 鲤 盲 盒</div>
@@ -173,9 +173,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hira
       <div class="cd-status" id="countdownStatus">抽奖进行中</div>
     </div>
 
-    <div class="card">
+    <div class="card" id="homeVerifyCard">
       <h2 id="homeVerifyTitle">📱 员工身份验证</h2>
-      <p class="desc" id="homeVerifyDesc">请输入手机号和姓名，验证身份后开启盲盒</p>
+      <p class="desc" id="homeVerifyDesc">请输入姓名和手机号，验证身份后开启盲盒</p>
       <div class="input-group">
         <label>您的姓名</label>
         <input type="text" id="userName" placeholder="请输入姓名" maxlength="20">
@@ -186,7 +186,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hira
       </div>
       <button class="btn btn-primary" onclick="handleVerify()">验证身份 & 开启盲盒</button>
     </div>
-    <div class="card" style="text-align:center">
+    <div class="card" style="text-align:center" id="homeRuleCard">
       <p class="desc" style="margin-bottom:8px" id="homeRuleTitle">📋 活动规则</p>
       <p class="desc small" id="homeRuleContent">猜中本周销冠的中奖员工可开启一次盲盒<br>盲盒内含10种特权福利，随机抽取<br>特权有效期30天，请截图分享到全员奋斗群</p>
     </div>
@@ -456,7 +456,7 @@ const DEFAULT_HOME_CONTENT={
 mainTitle:'穗华口腔11周年院庆',
 subTitle:'预 言 家 锦 鲤 盲 盒',
 verifyTitle:'📱 员工身份验证',
-verifyDesc:'请输入手机号和姓名，验证身份后开启盲盒',
+verifyDesc:'请输入姓名和手机号，验证身份后开启盲盒',
 ruleTitle:'📋 活动规则',
 ruleContent:'猜中本周销冠的中奖员工可开启一次盲盒\n盲盒内含10种特权福利，随机抽取\n特权有效期30天，请截图分享到全员奋斗群'
 };
@@ -484,8 +484,8 @@ try{const raw=localStorage.getItem(HOME_CONTENT_KEY);if(raw){const obj=JSON.pars
 return Object.assign({},DEFAULT_HOME_CONTENT);
 }
 function saveHomeContentData(data){localStorage.setItem(HOME_CONTENT_KEY,JSON.stringify(data));syncSettingToCloud('home_content',data)}
-function applyHomeContent(){
-const cfg=loadHomeContent();
+function applyHomeContent(cfg){
+if(!cfg)cfg=loadHomeContent();
 const elTitle=document.getElementById('homeMainTitle');if(elTitle)elTitle.textContent=cfg.mainTitle;
 const elSub=document.getElementById('homeSubTitle');if(elSub)elSub.textContent=cfg.subTitle;
 const elVerifyTitle=document.getElementById('homeVerifyTitle');if(elVerifyTitle)elVerifyTitle.textContent=cfg.verifyTitle;
@@ -644,7 +644,7 @@ let currentUser=null;
 function handleVerify(){
 const phone=document.getElementById('userPhone').value.trim();
 const name=document.getElementById('userName').value.trim();
-if(!phone||!name){showToast('请输入手机号和姓名');return}
+if(!phone||!name){showToast('请输入姓名和手机号');return}
 if(!isValidPhone(phone)){showToast('手机号格式不正确，请输入11位手机号');return}
 
 // 检查抽奖时间
@@ -1495,7 +1495,8 @@ initParticles();
 applyHomeContent();
 startCountdown();
 // 先同步配置，再同步记录
-loadCloudSettings().then(function(){
+loadCloudSettings().then(function(ok){
+  if(ok)applyHomeContent();
   syncLocalWithCloud();
   startCountdown();
 });
