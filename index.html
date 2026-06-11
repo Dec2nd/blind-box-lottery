@@ -487,7 +487,7 @@ var PRIZES=getPrizes();
 const STORAGE_KEY='suihua_blindbox';
 const WHITELIST_KEY='suihua_whitelist';
 const API_BASE='https://freedrives.eu.org'; // Cloudflare Worker API
-const ADMIN_TOKEN=localStorage.getItem('admin_token')||'';
+let ADMIN_TOKEN=localStorage.getItem('admin_token')||'';
 const WHITELIST_ENABLED_KEY='suihua_whitelist_enabled';
 const WEBCONFIG_KEY='suihua_webhook';
 const LOTTERY_TIME_KEY='suihua_lottery_time';
@@ -851,8 +851,9 @@ fetch(API_BASE+'/api/health',{
   headers:{'Authorization':'Bearer '+pwd}
 }).then(function(r){
   if(r.status===200){
-    // 验证通过
+    // 验证通过，更新 token
     localStorage.setItem('admin_token',pwd);
+    ADMIN_TOKEN=pwd;
     document.getElementById('adminModal').classList.remove('active');
     document.getElementById('adminPassword').value='';showPage('admin');updateAdminPanel();loadWebhookConfig();loadLotteryTimeConfig();renderPrizeProbConfig();loadHomeContentConfig();
     const cb=document.getElementById('whitelistEnabled');if(cb){cb.checked=loadWhitelistEnabled()}
@@ -1399,7 +1400,7 @@ renderPrizeProbConfig();
 showToast('✅ 已删除奖品：'+prize.name);
 }
 
-function handleLogout(){showPage('verify');showToast('已退出管理后台')}
+function handleLogout(){localStorage.removeItem('admin_token');ADMIN_TOKEN='';showPage('verify');showToast('已退出管理后台')}
 
 // ========== 安全管理 ==========
 function changeAdminPassword(){
@@ -1416,8 +1417,9 @@ function changeAdminPassword(){
     body:JSON.stringify({key:'admin_token',value:newPwd})
   }).then(function(r){return r.json()}).then(function(res){
     if(res.success){
-      // 同时更新本地缓存
+      // 同时更新本地缓存和内存中的token
       localStorage.setItem('admin_token',newPwd);
+      ADMIN_TOKEN=newPwd;
       statusEl.textContent='✅ 密码修改成功！（已同步到云端）';
       statusEl.style.color='#81c784';
       document.getElementById('newAdminPassword').value='';
