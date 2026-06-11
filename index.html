@@ -6,11 +6,54 @@
 <title>穗华口腔11周年院庆 · 预言家锦鲤盲盒</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--primary:#e63946;--gold:#f4a261;--deep:#264653;--accent:#e76f51;--sparkle:#ffd700}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);min-height:100vh;color:#fff;overflow-x:hidden}
+:root{--primary:#e63946;--gold:#f4a261;--deep:#264653;--accent:#e76f51;--sparkle:#ffd700;--koi-orange:#ff6b35;--koi-red:#dc2626;--red-glow:rgba(230,57,70,.3)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);min-height:100vh;color:#fff;overflow-x:hidden;position:relative}
+/* 喜庆灯笼装饰 */
+.lantern{position:fixed;top:-60px;z-index:0;pointer-events:none;font-size:40px;animation:lantern-swing 3s ease-in-out infinite}
+.lantern:nth-child(1){left:5%;animation-delay:0s;animation-duration:3.2s}
+.lantern:nth-child(2){left:15%;animation-delay:0.5s;animation-duration:2.8s}
+.lantern:nth-child(3){right:5%;animation-delay:1s;animation-duration:3s}
+.lantern:nth-child(4){right:15%;animation-delay:1.5s;animation-duration:3.5s}
+@keyframes lantern-swing{0%,100%{transform:rotate(-8deg) translateY(0)}50%{transform:rotate(8deg) translateY(10px)}}
+/* 锦鲤游动 */
+.koi-container{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden}
+.koi{position:absolute;font-size:36px;animation:koi-swim linear infinite;filter:drop-shadow(0 4px 8px rgba(255,107,53,.4))}
+.koi:nth-child(1){animation-duration:18s;animation-delay:0s}
+.koi:nth-child(2){animation-duration:22s;animation-delay:3s;font-size:30px}
+.koi:nth-child(3){animation-duration:20s;animation-delay:6s;font-size:28px}
+.koi:nth-child(4){animation-duration:25s;animation-delay:2s;font-size:32px}
+.koi:nth-child(5){animation-duration:19s;animation-delay:5s;font-size:26px}
+@keyframes koi-swim{
+0%{transform:translateX(-100px) translateY(0) scaleX(1)}
+10%{transform:translateX(calc(25vw - 50px)) translateY(-30px) scaleX(1)}
+20%{transform:translateX(50vw) translateY(20px) scaleX(1)}
+30%{transform:translateX(calc(75vw - 50px)) translateY(-20px) scaleX(1)}
+40%{transform:translateX(calc(100vw + 100px)) translateY(0) scaleX(-1)}
+50%{transform:translateX(calc(75vw - 50px)) translateY(30px) scaleX(-1)}
+60%{transform:translateX(50vw) translateY(-15px) scaleX(-1)}
+70%{transform:translateX(calc(25vw - 50px)) translateY(25px) scaleX(-1)}
+80%{transform:translateX(-100px) translateY(0) scaleX(-1)}
+90%{transform:translateX(-100px) translateY(-20px) scaleX(1)}
+100%{transform:translateX(-100px) translateY(0) scaleX(1)}
+}
+/* 锦鲤鱼尾摆动 */
+.koi::after{content:'🐟';position:absolute;right:-20px;top:50%;transform:translateY(-50%);font-size:20px;animation:koi-tail-wag 0.5s ease-in-out infinite alternate}
+@keyframes koi-tail-wag{0%{transform:translateY(-50%) rotate(-10deg)}100%{transform:translateY(-50%) rotate(10deg)}}
+/* 泡泡 */
+.bubble{position:absolute;width:8px;height:8px;background:radial-gradient(circle,rgba(255,255,255,.3),transparent);border-radius:50%;animation:bubble-rise linear infinite;pointer-events:none}
+@keyframes bubble-rise{0%{transform:translateY(0) scale(1);opacity:.6}50%{opacity:.3}100%{transform:translateY(-100px) scale(0.5);opacity:0}}
 .particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden}
 .particle{position:absolute;width:4px;height:4px;background:var(--sparkle);border-radius:50%;animation:float-up linear infinite;opacity:.6}
 @keyframes float-up{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:.6}90%{opacity:.6}100%{transform:translateY(-10vh) scale(1);opacity:0}}
+/* 红包飘落 */
+.red-envelope{position:fixed;top:-80px;z-index:0;pointer-events:none;font-size:32px;animation:red-envelope-fall linear infinite;filter:drop-shadow(0 4px 8px rgba(230,57,70,.3))}
+@keyframes red-envelope-fall{
+0%{transform:translateY(0) rotate(0deg)}
+25%{transform:translateY(25vh) rotate(15deg)}
+50%{transform:translateY(50vh) rotate(-10deg)}
+75%{transform:translateY(75vh) rotate(12deg)}
+100%{transform:translateY(105vh) rotate(-5deg)}
+}
 .container{position:relative;z-index:1;max-width:420px;margin:0 auto;padding:20px 16px;min-height:100vh;display:flex;flex-direction:column;align-items:center}
 .header{text-align:center;margin-bottom:30px;animation:fadeInDown .8s ease}
 @keyframes fadeInDown{from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:translateY(0)}}
@@ -72,6 +115,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hira
 .confetti-container{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:100;overflow:hidden}
 .confetti{position:absolute;width:10px;height:10px;top:-10px;animation:confetti-fall linear forwards}
 @keyframes confetti-fall{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+/* 烟花爆炸效果 */
+.firework{position:absolute;width:8px;height:8px;border-radius:50%;animation:firework-burst .8s ease-out forwards}
+@keyframes firework-burst{
+0%{transform:translate(0,0) scale(1);opacity:1}
+50%{transform:translate(var(--tx),var(--ty)) scale(1.5);opacity:.8}
+100%{transform:translate(calc(var(--tx)*2),calc(var(--ty)*2)) scale(0);opacity:0}
+}
 /* 盲盒开启动画增强 */
 .sparkle-burst{position:absolute;width:100%;height:100%;top:0;left:0;pointer-events:none;z-index:10}
 .sparkle-star{position:absolute;width:6px;height:6px;background:var(--sparkle);border-radius:50%;animation:sparkle-fly .8s ease-out forwards;box-shadow:0 0 6px var(--sparkle),0 0 12px rgba(255,215,0,.5)}
@@ -134,8 +184,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hira
 </style>
 </head>
 <body>
+<!-- 灯笼装饰 -->
+<div class="lantern">🏮</div>
+<div class="lantern">🏮</div>
+<div class="lantern">🏮</div>
+<div class="lantern">🏮</div>
+<!-- 锦鲤池 -->
+<div class="koi-container" id="koiContainer"></div>
+<!-- 红包雨 -->
+<div id="redEnvelopeContainer"></div>
+<!-- 粒子背景 -->
 <div class="particles" id="particles"></div>
+<!-- 彩纸容器 -->
 <div class="confetti-container" id="confettiContainer"></div>
+<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <div class="modal-overlay" id="adminModal">
@@ -603,8 +665,49 @@ return /^1[0-9]{10}$/.test(phone);
 // ========== 粒子背景 ==========
 function initParticles(){const c=document.getElementById('particles');for(let i=0;i<30;i++){const p=document.createElement('div');p.className='particle';p.style.left=Math.random()*100+'%';p.style.animationDuration=(4+Math.random()*6)+'s';p.style.animationDelay=Math.random()*5+'s';p.style.width=p.style.height=(2+Math.random()*4)+'px';p.style.background=['#ffd700','#f4a261','#e63946','#fff'][Math.floor(Math.random()*4)];c.appendChild(p)}}
 
+// ========== 锦鲤池 ==========
+function initKoi(){const c=document.getElementById('koiContainer');const koiEmojis=['🐠','🐡','🎏'];for(let i=0;i<5;i++){const k=document.createElement('div');k.className='koi';k.textContent=koiEmojis[i%koiEmojis.length];k.style.top=(10+Math.random()*70)+'%';c.appendChild(k)}}
+
+// ========== 红包雨 ==========
+function initRedEnvelopes(){const c=document.getElementById('redEnvelopeContainer');for(let i=0;i<6;i++){const e=document.createElement('div');e.className='red-envelope';e.textContent='🧧';e.style.left=Math.random()*90+'%';e.style.animationDuration=(8+Math.random()*7)+'s';e.style.animationDelay=Math.random()*8+'s';c.appendChild(e)}}
+
+// ========== 泡泡 ==========
+function createBubbles(){const c=document.getElementById('koiContainer');setInterval(function(){if(c.children.length>50)return;const b=document.createElement('div');b.className='bubble';b.style.left=Math.random()*100+'%';b.style.bottom='-10px';b.style.width=b.style.height=(4+Math.random()*8)+'px';b.style.animationDuration=(3+Math.random()*4)+'s';c.appendChild(b);setTimeout(function(){if(b.parentNode)b.parentNode.removeChild(b)},7000)},1500)}
+
 // ========== 彩带特效 ==========
-function triggerConfetti(){const c=document.getElementById('confettiContainer');c.innerHTML='';const colors=['#ffd700','#e63946','#f4a261','#2a9d8f','#e76f51','#fff'];for(let i=0;i<60;i++){const d=document.createElement('div');d.className='confetti';d.style.left=Math.random()*100+'%';d.style.background=colors[Math.floor(Math.random()*colors.length)];d.style.animationDuration=(1.5+Math.random()*2)+'s';d.style.animationDelay=Math.random()*0.5+'s';d.style.borderRadius=Math.random()>0.5?'50%':'2px';c.appendChild(d)}setTimeout(function(){c.innerHTML=''},4000)}
+function triggerConfetti(){
+const c=document.getElementById('confettiContainer');c.innerHTML='';
+const colors=['#ffd700','#e63946','#f4a261','#2a9d8f','#e76f51','#fff','#ff6b35','#dc2626'];
+// 彩纸
+for(let i=0;i<80;i++){
+const d=document.createElement('div');d.className='confetti';
+d.style.left=Math.random()*100+'%';
+d.style.background=colors[Math.floor(Math.random()*colors.length)];
+d.style.animationDuration=(2+Math.random()*2.5)+'s';
+d.style.animationDelay=Math.random()*0.8+'s';
+d.style.width=(6+Math.random()*8)+'px';
+d.style.height=(6+Math.random()*8)+'px';
+d.style.borderRadius=Math.random()>0.5?'50%':'2px';
+c.appendChild(d);
+}
+// 烟花效果（3个位置）
+for(let f=0;f<3;f++){
+const fx=document.createElement('div');fx.style.position='absolute';
+fx.style.left=(20+f*30)+'%';fx.style.top='30%';
+for(let i=0;i<20;i++){
+const spark=document.createElement('div');spark.className='firework';
+const angle=(i/20)*Math.PI*2;
+const dist=40+Math.random()*60;
+spark.style.setProperty('--tx',Math.cos(angle)*dist+'px');
+spark.style.setProperty('--ty',Math.sin(angle)*dist+'px');
+spark.style.background=colors[Math.floor(Math.random()*colors.length)];
+spark.style.animationDelay=(0.2+f*0.15)+'s';
+fx.appendChild(spark);
+}
+c.appendChild(fx);
+}
+setTimeout(function(){c.innerHTML=''},5000);
+}
 
 // ========== Toast ==========
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2000)}
@@ -1634,6 +1737,9 @@ fetch(API_BASE+'/api/records',{
 
 // 初始化
 initParticles();
+initKoi();
+initRedEnvelopes();
+createBubbles();
 applyHomeContent();
 startCountdown();
 // 先同步配置，再同步记录
