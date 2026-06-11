@@ -853,21 +853,44 @@ const statusEl=document.getElementById('importStatus');
 statusEl.textContent='🔄 正在解析文件...';
 statusEl.style.color='#ffd700';
 
+const isCSV=file.name.toLowerCase().endsWith('.csv');
+const isExcel=/\.(xlsx|xls)$/i.test(file.name);
+
+if(isCSV){
+// CSV 用文本方式读取
 const reader=new FileReader();
 reader.onload=function(e){
 try{
-const data=e.target.result;
-let rows=[];
-if(file.name.toLowerCase().endsWith('.csv')){
-rows=parseCSV(data);
+const text=e.target.result;
+const rows=parseCSV(text);
+processRows(rows,statusEl,input);
+}catch(err){statusEl.textContent='❌ CSV解析失败: '+err.message;statusEl.style.color='#e76f51';}
+};
+reader.readAsText(file,'UTF-8');
+}else if(isExcel){
+// Excel 用 SheetJS 解析
+const reader=new FileReader();
+reader.onload=function(e){
+try{
+const data=new Uint8Array(e.target.result);
+const workbook=XLSX.read(data,{type:'array'});
+const firstSheet=workbook.Sheets[workbook.SheetNames[0]];
+const jsonData=XLSX.utils.sheet_to_json(firstSheet,{header:1,defval:''});
+processRows(jsonData,statusEl,input);
+}catch(err){statusEl.textContent='❌ Excel解析失败: '+err.message;statusEl.style.color='#e76f51';}
+};
+reader.readAsArrayBuffer(file);
 }else{
-rows=parseCSV(data);
+statusEl.textContent='⚠️ 不支持的文件格式，请上传 CSV 或 Excel 文件';statusEl.style.color='#e76f51';
 }
-if(rows.length===0){statusEl.textContent='⚠️ 未解析到数据，请检查文件格式';statusEl.style.color='#e76f51';return}
+}
+
+function processRows(rows,statusEl,input){
+if(!rows||rows.length===0){statusEl.textContent='⚠️ 未解析到数据，请检查文件格式';statusEl.style.color='#e76f51';return}
 
 const whitelist=[];
 let nameIdx=-1,phoneIdx=-1;
-const header=rows[0].map(function(c){return c.trim()});
+const header=rows[0].map(function(c){return String(c).trim()});
 for(let i=0;i<header.length;i++){
 const h=header[i];
 if(/姓名|名字|name/i.test(h))nameIdx=i;
@@ -879,13 +902,13 @@ if(phoneIdx===-1)phoneIdx=1;
 const startRow=(nameIdx>=0&&phoneIdx>=0&&rows[0][nameIdx]===header[nameIdx])?1:0;
 for(let i=startRow;i<rows.length;i++){
 const row=rows[i];
-if(row.length<Math.max(nameIdx,phoneIdx)+1)continue;
-const name=row[nameIdx]?row[nameIdx].trim():'';
-const phone=row[phoneIdx]?row[phoneIdx].trim().replace(/\s/g,''):'';
+if(!row||row.length<Math.max(nameIdx,phoneIdx)+1)continue;
+const name=row[nameIdx]?String(row[nameIdx]).trim():'';
+const phone=row[phoneIdx]?String(row[phoneIdx]).trim().replace(/\s/g,''):'';
 if(name&&phone&&isValidPhone(phone)){whitelist.push({name:name,phone:phone})}
 }
 
-if(whitelist.length===0){statusEl.textContent='⚠️ 未找到有效的姓名+手机号数据';statusEl.style.color='#e76f51';return}
+if(whitelist.length===0){statusEl.textContent='⚠️ 未找到有效的姓名+手机号数据，请检查列名是否为「姓名」和「手机号」';statusEl.style.color='#e76f51';return}
 
 const existing=loadWhitelist();
 const map={};
@@ -899,9 +922,7 @@ statusEl.textContent='✅ 导入成功：新增 '+(merged.length-existing.length
 statusEl.style.color='#81c784';
 showToast('✅ 导入成功 '+merged.length+' 人');
 input.value='';
-}catch(err){statusEl.textContent='❌ 解析失败: '+err.message;statusEl.style.color='#e76f51';}
-};
-reader.readAsText(file,'UTF-8');
+}
 }
 
 function parseCSV(text){
