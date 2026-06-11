@@ -624,7 +624,14 @@ var data=loadData();
 data.records.push(record);saveData(data);
 displayResult(prize);triggerConfetti();h.textContent='🎊 恭喜中奖！';isOpening=false;
 // 发送Webhook
-const wh=loadWebhook();if(wh.enabled&&wh.url){setTimeout(function(){sendWebhook(record)},500)}
+const wh=loadWebhook();
+if(wh.enabled&&wh.url){
+  setTimeout(function(){
+    sendWebhook(record).then(function(ok){
+      if(ok){console.log('✅ Webhook发送成功')}else{console.warn('⚠️ Webhook发送失败')}
+    }).catch(function(err){console.error('❌ Webhook异常:',err)})
+  },500)
+}
 },900);
 },1500);
 }
