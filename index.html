@@ -152,8 +152,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hira
 <div class="container">
   <div class="header">
     <div class="logo">🎁</div>
-    <h1>穗华口腔11周年院庆</h1>
-    <div class="subtitle">预 言 家 锦 鲤 盲 盒</div>
+    <h1 id="homeMainTitle">穗华口腔11周年院庆</h1>
+    <div class="subtitle" id="homeSubTitle">预 言 家 锦 鲤 盲 盒</div>
   </div>
 
   <!-- 员工端：验证 -->
@@ -174,8 +174,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hira
     </div>
 
     <div class="card">
-      <h2>📱 员工身份验证</h2>
-      <p class="desc">请输入手机号和姓名，验证身份后开启盲盒</p>
+      <h2 id="homeVerifyTitle">📱 员工身份验证</h2>
+      <p class="desc" id="homeVerifyDesc">请输入手机号和姓名，验证身份后开启盲盒</p>
       <div class="input-group">
         <label>您的姓名</label>
         <input type="text" id="userName" placeholder="请输入姓名" maxlength="20">
@@ -187,8 +187,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hira
       <button class="btn btn-primary" onclick="handleVerify()">验证身份 & 开启盲盒</button>
     </div>
     <div class="card" style="text-align:center">
-      <p class="desc" style="margin-bottom:8px">📋 活动规则</p>
-      <p class="desc small">猜中本周销冠的中奖员工可开启一次盲盒<br>盲盒内含10种特权福利，随机抽取<br>特权有效期30天，请截图分享到全员奋斗群</p>
+      <p class="desc" style="margin-bottom:8px" id="homeRuleTitle">📋 活动规则</p>
+      <p class="desc small" id="homeRuleContent">猜中本周销冠的中奖员工可开启一次盲盒<br>盲盒内含10种特权福利，随机抽取<br>特权有效期30天，请截图分享到全员奋斗群</p>
     </div>
     <div class="admin-link"><a onclick="handleAdminClick()">⚙️ 管理员入口</a></div>
   </div>
@@ -254,7 +254,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hira
   <div class="page" id="page-admin">
     <div class="card">
       <h2>⚙️ 管理后台</h2>
-      <p class="desc">管理白名单、查看开奖记录、配置数据回传、设置抽奖时间</p>
+      <p class="desc">管理白名单、查看开奖记录、配置数据回传、设置抽奖时间、编辑首页内容</p>
     </div>
 
     <div class="stats-grid">
@@ -303,6 +303,40 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hira
         </div>
       </div>
       <div id="importStatus" style="margin-top:12px;font-size:12px;color:rgba(255,255,255,.5)"></div>
+    </div>
+
+    <div class="card">
+      <h2>📝 首页内容编辑</h2>
+      <p class="desc small">编辑首页展示的文字内容，保存后所有设备自动同步</p>
+      <div class="input-group">
+        <label>主标题</label>
+        <input type="text" id="editMainTitle" placeholder="穗华口腔11周年院庆" maxlength="30">
+      </div>
+      <div class="input-group">
+        <label>副标题</label>
+        <input type="text" id="editSubTitle" placeholder="预言家锦鲤盲盒" maxlength="20">
+      </div>
+      <div class="input-group">
+        <label>验证卡片标题</label>
+        <input type="text" id="editVerifyTitle" placeholder="员工身份验证" maxlength="20">
+      </div>
+      <div class="input-group">
+        <label>验证卡片描述</label>
+        <input type="text" id="editVerifyDesc" placeholder="请输入手机号和姓名，验证身份后开启盲盒" maxlength="50">
+      </div>
+      <div class="input-group">
+        <label>活动规则标题</label>
+        <input type="text" id="editRuleTitle" placeholder="活动规则" maxlength="20">
+      </div>
+      <div class="input-group">
+        <label>活动规则内容（支持换行）</label>
+        <textarea id="editRuleContent" placeholder="猜中本周销冠的中奖员工可开启一次盲盒\n盲盒内含10种特权福利，随机抽取\n特权有效期30天，请截图分享到全员奋斗群" style="min-height:80px"></textarea>
+      </div>
+      <div style="display:flex;gap:12px">
+        <button class="btn btn-primary btn-sm" onclick="saveHomeContent()">💾 保存首页内容</button>
+        <button class="btn btn-outline btn-sm" onclick="resetHomeContent()">🔄 恢复默认</button>
+      </div>
+      <div id="homeContentStatus" style="margin-top:12px;font-size:12px;color:rgba(255,255,255,.5)"></div>
     </div>
 
     <div class="card">
@@ -417,12 +451,21 @@ const DEFAULT_PRIZES=[
 {id:10,name:'免开非重要会议券',icon:'📋',group:'三、职场通用（日常解压类）',desc:'可豁免参加一次科室/部门的日常夕会或常规行政总结会议。\n\n规则：30天内有效，核心医疗大交班、医疗安全会议、全院大会不可免除。'}
 ];
 const CUSTOM_PRIZES_KEY='suihua_custom_prizes';
+const HOME_CONTENT_KEY='suihua_home_content';
+const DEFAULT_HOME_CONTENT={
+mainTitle:'穗华口腔11周年院庆',
+subTitle:'预 言 家 锦 鲤 盲 盒',
+verifyTitle:'📱 员工身份验证',
+verifyDesc:'请输入手机号和姓名，验证身份后开启盲盒',
+ruleTitle:'📋 活动规则',
+ruleContent:'猜中本周销冠的中奖员工可开启一次盲盒\n盲盒内含10种特权福利，随机抽取\n特权有效期30天，请截图分享到全员奋斗群'
+};
 // PRIZES 动态读取：优先用自定义，否则用默认
 function getPrizes(){
   try{const raw=localStorage.getItem(CUSTOM_PRIZES_KEY);if(raw){const arr=JSON.parse(raw);if(arr.length>0)return arr}}catch(e){}
   return JSON.parse(JSON.stringify(DEFAULT_PRIZES));
 }
-function saveCustomPrizes(prizes){localStorage.setItem(CUSTOM_PRIZES_KEY,JSON.stringify(prizes))}
+function saveCustomPrizes(prizes){localStorage.setItem(CUSTOM_PRIZES_KEY,JSON.stringify(prizes));syncSettingToCloud('custom_prizes',prizes)}
 // 兼容旧代码中直接引用 PRIZES 的地方
 var PRIZES=getPrizes();
 
@@ -434,6 +477,22 @@ const WHITELIST_ENABLED_KEY='suihua_whitelist_enabled';
 const WEBCONFIG_KEY='suihua_webhook';
 const LOTTERY_TIME_KEY='suihua_lottery_time';
 const PRIZE_PROB_KEY='suihua_prize_prob';
+
+// ========== 首页内容配置 ==========
+function loadHomeContent(){
+try{const raw=localStorage.getItem(HOME_CONTENT_KEY);if(raw){const obj=JSON.parse(raw);return Object.assign({},DEFAULT_HOME_CONTENT,obj)}}catch(e){}
+return Object.assign({},DEFAULT_HOME_CONTENT);
+}
+function saveHomeContentData(data){localStorage.setItem(HOME_CONTENT_KEY,JSON.stringify(data));syncSettingToCloud('home_content',data)}
+function applyHomeContent(){
+const cfg=loadHomeContent();
+const elTitle=document.getElementById('homeMainTitle');if(elTitle)elTitle.textContent=cfg.mainTitle;
+const elSub=document.getElementById('homeSubTitle');if(elSub)elSub.textContent=cfg.subTitle;
+const elVerifyTitle=document.getElementById('homeVerifyTitle');if(elVerifyTitle)elVerifyTitle.textContent=cfg.verifyTitle;
+const elVerifyDesc=document.getElementById('homeVerifyDesc');if(elVerifyDesc)elVerifyDesc.textContent=cfg.verifyDesc;
+const elRuleTitle=document.getElementById('homeRuleTitle');if(elRuleTitle)elRuleTitle.textContent=cfg.ruleTitle;
+const elRuleContent=document.getElementById('homeRuleContent');if(elRuleContent)elRuleContent.innerHTML=cfg.ruleContent.replace(/\n/g,'<br>');
+}
 // Webhook URL 由用户在管理后台配置，不再硬编码
 
 // ========== 数据操作 ==========
@@ -471,6 +530,7 @@ return fetch(API_BASE+'/api/settings',{
     if(data.settings.lottery_time){localStorage.setItem(LOTTERY_TIME_KEY,JSON.stringify(data.settings.lottery_time))}
     if(data.settings.prize_prob){localStorage.setItem(PRIZE_PROB_KEY,JSON.stringify(data.settings.prize_prob))}
     if(data.settings.custom_prizes){localStorage.setItem(CUSTOM_PRIZES_KEY,JSON.stringify(data.settings.custom_prizes));PRIZES=getPrizes()}
+    if(data.settings.home_content){localStorage.setItem(HOME_CONTENT_KEY,JSON.stringify(data.settings.home_content));applyHomeContent()}
     console.log('☁️ 已从云端同步配置');
     return true;
   }
@@ -773,7 +833,7 @@ function verifyAdmin(){
 const pwd=document.getElementById('adminPassword').value.trim();
 if(pwd==='suihua2026'||pwd==='123456'){
 document.getElementById('adminModal').classList.remove('active');
-document.getElementById('adminPassword').value='';showPage('admin');updateAdminPanel();loadWebhookConfig();loadLotteryTimeConfig();renderPrizeProbConfig();
+document.getElementById('adminPassword').value='';showPage('admin');updateAdminPanel();loadWebhookConfig();loadLotteryTimeConfig();renderPrizeProbConfig();loadHomeContentConfig();
 const cb=document.getElementById('whitelistEnabled');if(cb){cb.checked=loadWhitelistEnabled()}
 }else{showToast('密码错误')}
 }
@@ -1315,6 +1375,43 @@ showToast('✅ 已删除奖品：'+prize.name);
 
 function handleLogout(){showPage('verify');showToast('已退出管理后台')}
 
+// ========== 首页内容编辑 ==========
+function loadHomeContentConfig(){
+const cfg=loadHomeContent();
+document.getElementById('editMainTitle').value=cfg.mainTitle;
+document.getElementById('editSubTitle').value=cfg.subTitle;
+document.getElementById('editVerifyTitle').value=cfg.verifyTitle;
+document.getElementById('editVerifyDesc').value=cfg.verifyDesc;
+document.getElementById('editRuleTitle').value=cfg.ruleTitle;
+document.getElementById('editRuleContent').value=cfg.ruleContent;
+}
+
+function saveHomeContent(){
+const data={
+mainTitle:document.getElementById('editMainTitle').value.trim()||DEFAULT_HOME_CONTENT.mainTitle,
+subTitle:document.getElementById('editSubTitle').value.trim()||DEFAULT_HOME_CONTENT.subTitle,
+verifyTitle:document.getElementById('editVerifyTitle').value.trim()||DEFAULT_HOME_CONTENT.verifyTitle,
+verifyDesc:document.getElementById('editVerifyDesc').value.trim()||DEFAULT_HOME_CONTENT.verifyDesc,
+ruleTitle:document.getElementById('editRuleTitle').value.trim()||DEFAULT_HOME_CONTENT.ruleTitle,
+ruleContent:document.getElementById('editRuleContent').value.trim()||DEFAULT_HOME_CONTENT.ruleContent
+};
+saveHomeContentData(data);
+applyHomeContent();
+const statusEl=document.getElementById('homeContentStatus');
+if(statusEl){statusEl.textContent='✅ 首页内容已保存并同步到云端';statusEl.style.color='#81c784'}
+showToast('✅ 首页内容已保存');
+}
+
+function resetHomeContent(){
+if(!confirm('确定恢复默认首页内容？'))return;
+saveHomeContentData(DEFAULT_HOME_CONTENT);
+loadHomeContentConfig();
+applyHomeContent();
+const statusEl=document.getElementById('homeContentStatus');
+if(statusEl){statusEl.textContent='✅ 已恢复默认内容';statusEl.style.color='#81c784'}
+showToast('✅ 已恢复默认内容');
+}
+
 // ========== 一键保存所有设置到云端 ==========
 async function syncAllSettingsToCloud(){
 const statusEl=document.getElementById('syncSettingsStatus');
@@ -1325,7 +1422,8 @@ const settings=[
   {key:'webhook',value:loadWebhook()},
   {key:'lottery_time',value:loadLotteryTime()},
   {key:'prize_prob',value:loadPrizeProb()},
-  {key:'custom_prizes',value:getPrizes()}
+  {key:'custom_prizes',value:getPrizes()},
+  {key:'home_content',value:loadHomeContent()}
 ];
 let success=0,fail=0;
 for(let i=0;i<settings.length;i++){
@@ -1394,6 +1492,7 @@ fetch(API_BASE+'/api/records',{
 
 // 初始化
 initParticles();
+applyHomeContent();
 startCountdown();
 // 先同步配置，再同步记录
 loadCloudSettings().then(function(){
