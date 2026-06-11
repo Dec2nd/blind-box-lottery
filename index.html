@@ -392,6 +392,8 @@ const PRIZES=[
 
 const STORAGE_KEY='suihua_blindbox';
 const WHITELIST_KEY='suihua_whitelist';
+const API_BASE='https://freedrives.eu.org'; // Cloudflare Worker API
+const ADMIN_TOKEN='suihua2026';
 const WHITELIST_ENABLED_KEY='suihua_whitelist_enabled';
 const WEBCONFIG_KEY='suihua_webhook';
 const LOTTERY_TIME_KEY='suihua_lottery_time';
@@ -533,17 +535,45 @@ const winner=whitelist.find(function(w){return w.phone===phone});
 if(!winner){showToast('您不在白名单中，无法参与');return}
 }
 
-// 检查是否已开奖
-const data=loadData();
-const records=data.records;
-const already=records.find(function(r){return r.phone===phone});
-if(already){
-document.getElementById('alreadyInfo').textContent='您已开过盲盒，获得：'+(PRIZES.find(function(p){return p.id===already.prizeId})||{}).name;
-showPage('already');return}
-
-currentUser={name:name,phone:phone,dept:'',prizeId:null};
-document.getElementById('boxUserName').textContent=name;
-showPage('blindbox');
+// 先查云端数据库（跨设备防重复）
+showToast('正在验证身份...');
+fetch(API_BASE+'/api/check',{
+  method:'POST',
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({phone:phone})
+}).then(function(r){return r.json()}).then(function(cloudData){
+  if(cloudData.exists){
+    var prizeName='';
+    if(cloudData.record&&cloudData.record.prize_name) prizeName=cloudData.record.prize_name;
+    else{var p=PRIZES.find(function(pp){return pp.id===cloudData.record.prize_id});if(p)prizeName=p.name}
+    document.getElementById('alreadyInfo').textContent='您已开过盲盒，获得：'+prizeName;
+    showPage('already');return;
+  }
+  // 再查本地缓存
+  var data=loadData();
+  var records=data.records;
+  var already=records.find(function(r){return r.phone===phone});
+  if(already){
+    document.getElementById('alreadyInfo').textContent='您已开过盲盒，获得：'+(PRIZES.find(function(p){return p.id===already.prizeId})||{}).name;
+    showPage('already');return;
+  }
+  currentUser={name:name,phone:phone,dept:'',prizeId:null};
+  document.getElementById('boxUserName').textContent=name;
+  showPage('blindbox');
+}).catch(function(err){
+  // 云端不可用时降级到本地检查
+  console.warn('云端检查失败，降级到本地:',err);
+  var data=loadData();
+  var records=data.records;
+  var already=records.find(function(r){return r.phone===phone});
+  if(already){
+    document.getElementById('alreadyInfo').textContent='您已开过盲盒，获得：'+(PRIZES.find(function(p){return p.id===already.prizeId})||{}).name;
+    showPage('already');return;
+  }
+  currentUser={name:name,phone:phone,dept:'',prizeId:null};
+  document.getElementById('boxUserName').textContent=name;
+  showPage('blindbox');
+});
 }
 
 function handleOpenBox(){
@@ -580,8 +610,17 @@ w.classList.remove('opening');
 raysEl.classList.remove('active');
 document.getElementById('boxFlash').classList.remove('active');
 const prize=drawPrizeByWeight();
-const data=loadData();
-const record={name:currentUser.name,phone:currentUser.phone,dept:currentUser.dept,prizeId:prize.id,time:new Date().toLocaleString('zh-CN')};
+var prizeInfo=PRIZES.find(function(p){return p.id===prize.id})||prize;
+// 同时写入云端数据库和本地缓存
+var record={name:currentUser.name,phone:currentUser.phone,dept:currentUser.dept,prizeId:prize.id,time:new Date().toLocaleString('zh-CN')};
+// 写入云端
+fetch(API_BASE+'/api/record',{
+  method:'POST',
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({name:currentUser.name,phone:currentUser.phone,dept:currentUser.dept,prizeId:prize.id,prizeName:prizeInfo.name||''})
+}).catch(function(err){console.warn('云端写入失败，仅保存本地:',err)});
+// 写入本地（作为缓存）
+var data=loadData();
 data.records.push(record);saveData(data);
 displayResult(prize);triggerConfetti();h.textContent='🎊 恭喜中奖！';isOpening=false;
 // 发送Webhook
@@ -671,7 +710,47 @@ document.getElementById('statTotal').textContent=whitelist.length;
 document.getElementById('statWhitelist').textContent=loadWhitelistEnabled()?whitelist.length:0;
 document.getElementById('statUnbox').textContent=data.records.length;
 renderWhitelistTable();
-const tbody=document.getElementById('recordTableBody');
+// 先从云端加载记录，失败则用本地数据
+loadCloudRecords();
+}
+
+function loadCloudRecords(){
+var tbody=document.getElementById('recordTableBody');
+tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,.5);padding:20px">⏳ 正在从云端加载记录...</td></tr>';
+fetch(API_BASE+'/api/records',{
+  headers:{'Authorization':'Bearer '+ADMIN_TOKEN}
+}).then(function(r){return r.json()}).then(function(cloudData){
+  if(cloudData.records&&cloudData.records.length>0){
+    // 合并到本地缓存
+    var localData=loadData();
+    var localPhones=new Set(localData.records.map(function(r){return r.phone}));
+    var hasNew=false;
+    cloudData.records.forEach(function(r){
+      if(!localPhones.has(r.phone)){
+        localData.records.push({name:r.name,phone:r.phone,dept:r.dept||'',prizeId:r.prize_id,time:r.time});
+        hasNew=true;
+      }
+    });
+    if(hasNew)saveData(localData);
+    // 渲染云端记录
+    document.getElementById('statUnbox').textContent=cloudData.records.length;
+    tbody.innerHTML=cloudData.records.map(function(r){
+      var prize=PRIZES.find(function(p){return p.id===r.prize_id});
+      return'<tr><td>'+r.time+'</td><td>'+r.name+'</td><td>'+r.phone+'</td><td>'+(r.prize_id||'-')+'</td><td>'+(prize&&prize.icon?prize.icon+' ':'')+(r.prize_name||prize?prize.name:'-')+'</td></tr>';
+    }).join('');
+  }else{
+    // 云端无记录，用本地数据
+    renderLocalRecords();
+  }
+}).catch(function(err){
+  console.warn('云端加载失败，使用本地数据:',err);
+  renderLocalRecords();
+});
+}
+
+function renderLocalRecords(){
+var data=loadData();
+var tbody=document.getElementById('recordTableBody');
 if(data.records.length>0){
 tbody.innerHTML=data.records.slice().reverse().map(function(r){
 const prize=PRIZES.find(function(p){return p.id===r.prizeId});
@@ -960,11 +1039,17 @@ function handleLogout(){showPage('verify');showToast('已退出管理后台')}
 // ========== 一键清空开奖记录 ==========
 function clearRecords(){
 if(!confirm('确定清空所有开奖记录？\n\n此操作不可撤销，所有员工将可以重新参与抽奖。\n白名单、时间设置、概率配置等其他设置不受影响。'))return;
+// 清空云端
+fetch(API_BASE+'/api/records',{
+  method:'DELETE',
+  headers:{'Authorization':'Bearer '+ADMIN_TOKEN}
+}).catch(function(err){console.warn('云端清空失败:',err)});
+// 清空本地
 const data=loadData();
 data.records=[];
 saveData(data);
 updateAdminPanel();
-showToast('✅ 开奖记录已清空，可重新开始');
+showToast('✅ 开奖记录已清空（云端+本地），可重新开始');
 }
 
 // 初始化
