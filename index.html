@@ -72,6 +72,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hira
 .confetti-container{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:100;overflow:hidden}
 .confetti{position:absolute;width:10px;height:10px;top:-10px;animation:confetti-fall linear forwards}
 @keyframes confetti-fall{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+/* 盲盒开启动画增强 */
+.sparkle-burst{position:absolute;width:100%;height:100%;top:0;left:0;pointer-events:none;z-index:10}
+.sparkle-star{position:absolute;width:6px;height:6px;background:var(--sparkle);border-radius:50%;animation:sparkle-fly .8s ease-out forwards;box-shadow:0 0 6px var(--sparkle),0 0 12px rgba(255,215,0,.5)}
+@keyframes sparkle-fly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0}}
+.box-light-rays{position:absolute;top:50%;left:50%;width:300px;height:300px;transform:translate(-50%,-50%);pointer-events:none;z-index:5;opacity:0;transition:opacity .3s}
+.box-light-rays.active{opacity:1;animation:rays-rotate 2s linear infinite}
+.box-light-rays .ray{position:absolute;top:50%;left:50%;width:2px;height:120px;background:linear-gradient(to top,rgba(255,215,0,.6),transparent);transform-origin:bottom center;animation:ray-pulse 1s ease-in-out infinite alternate}
+@keyframes rays-rotate{from{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+@keyframes ray-pulse{0%{opacity:.3;height:80px}100%{opacity:1;height:120px}}
+.box-flash{position:absolute;top:0;left:0;width:100%;height:100%;background:radial-gradient(circle,rgba(255,255,255,.9) 0%,rgba(255,215,0,.4) 30%,transparent 70%);border-radius:24px;opacity:0;pointer-events:none;z-index:20}
+.box-flash.active{animation:flash-bang .6s ease-out}
+@keyframes flash-bang{0%{opacity:0;transform:scale(.5)}20%{opacity:1;transform:scale(1.1)}100%{opacity:0;transform:scale(1.5)}}
+.box-wrapper.opening .box-face{animation:box-open .8s cubic-bezier(.68,-.55,.265,1.55) forwards}
+@keyframes box-open{0%{transform:scale(1) rotate(0deg)}30%{transform:scale(1.15) rotate(-5deg)}50%{transform:scale(1.2) rotate(5deg)}70%{transform:scale(1.1) rotate(-3deg)}100%{transform:scale(0) rotate(10deg);opacity:0}}
+.result-card{animation:result-reveal .8s cubic-bezier(.68,-.55,.265,1.55) forwards}
+@keyframes result-reveal{0%{transform:scale(.3) rotateY(90deg);opacity:0}50%{transform:scale(1.05) rotateY(-10deg);opacity:1}100%{transform:scale(1) rotateY(0deg);opacity:1}}
 .modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
 .modal-overlay.active{display:flex}
 .modal{background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:28px 24px;max-width:360px;width:100%;animation:modal-in .3s ease}
@@ -127,7 +143,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hira
     <h3>🔐 管理员验证</h3>
     <div class="input-group">
       <label>请输入管理密码</label>
-      <input type="password" id="adminPassword" placeholder="密码：suihua2026">
+      <input type="password" id="adminPassword" placeholder="请输入管理密码">
     </div>
     <button class="btn btn-primary" onclick="verifyAdmin()">进入管理后台</button>
   </div>
@@ -161,12 +177,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hira
       <h2>📱 员工身份验证</h2>
       <p class="desc">请输入手机号和姓名，验证身份后开启盲盒</p>
       <div class="input-group">
-        <label>手机号码</label>
-        <input type="text" id="userPhone" placeholder="请输入手机号" maxlength="11" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-      </div>
-      <div class="input-group">
         <label>您的姓名</label>
         <input type="text" id="userName" placeholder="请输入姓名" maxlength="20">
+      </div>
+      <div class="input-group">
+        <label>手机号码</label>
+        <input type="text" id="userPhone" placeholder="请输入手机号" maxlength="11" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
       </div>
       <button class="btn btn-primary" onclick="handleVerify()">验证身份 & 开启盲盒</button>
     </div>
@@ -206,6 +222,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hira
       </div>
       <div class="box-wrapper" id="boxWrapper" onclick="handleOpenBox()">
         <div class="box-glow"></div>
+        <div class="box-light-rays" id="boxLightRays"></div>
+        <div class="sparkle-burst" id="sparkleBurst"></div>
+        <div class="box-flash" id="boxFlash"></div>
         <div class="box-3d">
           <div class="box-face"><div class="icon">🎁</div><div class="text">点击开启</div></div>
         </div>
@@ -535,8 +554,31 @@ if(!timeCheck.ok){showToast(timeCheck.msg);isOpening=false;return}
 
 const w=document.getElementById('boxWrapper');const h=document.getElementById('boxHint');
 w.classList.add('shaking');h.textContent='✨ 正在拆开盲盒...';
+
+// 生成光芒射线
+const raysEl=document.getElementById('boxLightRays');
+raysEl.innerHTML='';
+for(let i=0;i<12;i++){
+const ray=document.createElement('div');ray.className='ray';
+ray.style.transform='rotate('+i*30+'deg)';ray.style.animationDelay=(i*0.08)+'s';
+raysEl.appendChild(ray);
+}
+
 setTimeout(function(){
 w.classList.remove('shaking');
+// 激活光芒
+raysEl.classList.add('active');
+// 激活闪光
+document.getElementById('boxFlash').classList.add('active');
+// 生成闪光粒子爆发
+triggerSparkleBurst();
+// 盲盒打开动画
+w.classList.add('opening');
+
+setTimeout(function(){
+w.classList.remove('opening');
+raysEl.classList.remove('active');
+document.getElementById('boxFlash').classList.remove('active');
 const prize=drawPrizeByWeight();
 const data=loadData();
 const record={name:currentUser.name,phone:currentUser.phone,dept:currentUser.dept,prizeId:prize.id,time:new Date().toLocaleString('zh-CN')};
@@ -544,7 +586,34 @@ data.records.push(record);saveData(data);
 displayResult(prize);triggerConfetti();h.textContent='🎊 恭喜中奖！';isOpening=false;
 // 发送Webhook
 const wh=loadWebhook();if(wh.enabled&&wh.url){setTimeout(function(){sendWebhook(record)},500)}
+},900);
 },1500);
+}
+
+// 闪光粒子爆发效果
+function triggerSparkleBurst(){
+const container=document.getElementById('sparkleBurst');
+container.innerHTML='';
+const colors=['#ffd700','#fff','#f4a261','#e63946','#ff6b6b','#ffa500'];
+for(let i=0;i<24;i++){
+const star=document.createElement('div');star.className='sparkle-star';
+const angle=(Math.PI*2/24)*i;
+const dist=80+Math.random()*60;
+const tx=Math.cos(angle)*dist;
+const ty=Math.sin(angle)*dist;
+star.style.setProperty('--tx',tx+'px');
+star.style.setProperty('--ty',ty+'px');
+star.style.left='50%';star.style.top='50%';
+star.style.marginLeft='-3px';star.style.marginTop='-3px';
+star.style.background=colors[Math.floor(Math.random()*colors.length)];
+star.style.width=(4+Math.random()*6)+'px';
+star.style.height=star.style.width;
+star.style.animationDelay=(Math.random()*0.2)+'s';
+star.style.animationDuration=(0.5+Math.random()*0.5)+'s';
+container.appendChild(star);
+}
+// 清理
+setTimeout(function(){container.innerHTML=''},1500);
 }
 
 // ========== 加权随机抽奖 ==========
