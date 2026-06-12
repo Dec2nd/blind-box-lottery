@@ -930,7 +930,7 @@ const whitelistEnabled=loadWhitelistEnabled();
 if(whitelistEnabled){
 const whitelist=loadWhitelist();
 const winner=whitelist.find(function(w){return w.phone===phone});
-if(!winner){showToast('您不在白名单中，无法参与');return}
+if(!winner){showToast('抱歉，您暂无抽奖资格');return}
 }
 
 // 先查云端数据库（跨设备防重复）
