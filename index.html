@@ -856,15 +856,14 @@ const statusEl=document.getElementById('countdownStatus');
 const titleEl=document.querySelector('.countdown-box .cd-title');
 
 if(!start&&!end){
-// 无时间限制
-document.getElementById('cdDay').textContent='--';
-document.getElementById('cdHour').textContent='--';
-document.getElementById('cdMin').textContent='--';
-document.getElementById('cdSec').textContent='--';
+// 无时间限制，隐藏倒计时数字只显示状态
+document.getElementById('countdownTime').style.display='none';
 if(statusEl){statusEl.textContent='抽奖进行中';statusEl.className='cd-status';}
 if(titleEl)titleEl.textContent='⏰ 抽奖活动';
 return;
 }
+// 有时间限制时确保显示倒计时
+document.getElementById('countdownTime').style.display='flex';
 
 if(now<start){
 // 未开始
@@ -1924,19 +1923,25 @@ fetch(API_BASE+'/api/records',{
 });
 }
 
-// 初始化
+// 初始化：先本地渲染，再后台同步云端
 initParticles();
 initPaperConfetti();
 initStars();
 initRedEnvelopes();
 applyHomeContent();
+// 默认无时间限制，避免先显示00再变--
+if(!localStorage.getItem(LOTTERY_TIME_KEY)){
+  saveLotteryTimeData({start:'',end:''});
+}
 startCountdown();
-// 先同步配置，再同步记录
-loadCloudSettings().then(function(ok){
-  if(ok)applyHomeContent();
-  syncLocalWithCloud();
-  startCountdown();
-});
+// 后台静默同步云端配置和记录（不阻塞页面）
+setTimeout(function(){
+  loadCloudSettings().then(function(ok){
+    if(ok)applyHomeContent();
+    syncLocalWithCloud();
+    startCountdown();
+  });
+},100);
 </script>
 </body>
 </html>
