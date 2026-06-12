@@ -1911,10 +1911,6 @@ initPaperConfetti();
 initStars();
 initRedEnvelopes();
 applyHomeContent();
-// 默认无时间限制，避免先显示00再变--
-if(!localStorage.getItem(LOTTERY_TIME_KEY)){
-  saveLotteryTimeData({start:'',end:''});
-}
 startCountdown();
 // 后台静默同步云端配置和记录（不阻塞页面）
 setTimeout(function(){
