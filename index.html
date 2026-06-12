@@ -258,9 +258,9 @@ animation:subtitle-breathe 3s ease-in-out infinite;
 50%{transform:scale(1.1) rotate(-10deg)}
 }
 /* 时间配置 */
-.time-config{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-.time-config .input-group{margin-bottom:0}
-.time-config input[type="datetime-local"]{width:100%;min-width:0;max-width:100%;box-sizing:border-box}
+.time-config{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:12px;overflow:hidden}
+.time-config .input-group{margin-bottom:0;display:flex;flex-direction:column}
+.time-config input[type="datetime-local"]{width:100%;box-sizing:border-box}
 @media(min-width:480px){.container{padding:30px 24px}.box-wrapper{width:260px;height:260px}.box-face{width:210px;height:210px}.box-face .icon{font-size:80px}}
 @media(max-width:600px){.time-config{grid-template-columns:1fr !important}.time-config input[type="datetime-local"]{font-size:14px}}
 </style>
@@ -522,11 +522,17 @@ animation:subtitle-breathe 3s ease-in-out infinite;
       <div class="time-config">
         <div class="input-group">
           <label>开始时间</label>
-          <input type="datetime-local" id="lotteryStartTime">
+          <div style="display:flex;gap:6px">
+            <input type="date" id="lotteryStartDate" style="flex:1">
+            <input type="time" id="lotteryStartTime" style="flex:1">
+          </div>
         </div>
         <div class="input-group">
           <label>结束时间</label>
-          <input type="datetime-local" id="lotteryEndTime">
+          <div style="display:flex;gap:6px">
+            <input type="date" id="lotteryEndDate" style="flex:1">
+            <input type="time" id="lotteryEndTime" style="flex:1">
+          </div>
         </div>
       </div>
       <div style="display:flex;gap:12px">
@@ -1245,16 +1251,32 @@ function loadWebhookConfig(){const wh=loadWebhook();document.getElementById('web
 // ========== 抽奖时间配置 ==========
 function loadLotteryTimeConfig(){
 const cfg=loadLotteryTime();
-if(cfg.start)document.getElementById('lotteryStartTime').value=cfg.start;
-if(cfg.end)document.getElementById('lotteryEndTime').value=cfg.end;
+if(cfg.start){
+  const parts=cfg.start.split('T');
+  if(parts.length===2){
+    document.getElementById('lotteryStartDate').value=parts[0];
+    document.getElementById('lotteryStartTime').value=parts[1].substring(0,5);
+  }
+}
+if(cfg.end){
+  const parts=cfg.end.split('T');
+  if(parts.length===2){
+    document.getElementById('lotteryEndDate').value=parts[0];
+    document.getElementById('lotteryEndTime').value=parts[1].substring(0,5);
+  }
+}
 const statusEl=document.getElementById('lotteryTimeStatus');
 if(!cfg.start&&!cfg.end){if(statusEl)statusEl.textContent='当前无时间限制';}
 else{if(statusEl)statusEl.textContent='开始：'+(cfg.start||'未设置')+' | 结束：'+(cfg.end||'未设置');}
 }
 
 function saveLotteryTime(){
-const start=document.getElementById('lotteryStartTime').value;
-const end=document.getElementById('lotteryEndTime').value;
+const sd=document.getElementById('lotteryStartDate').value;
+const st=document.getElementById('lotteryStartTime').value;
+const ed=document.getElementById('lotteryEndDate').value;
+const et=document.getElementById('lotteryEndTime').value;
+const start=sd&&st?sd+'T'+st+':00':'';
+const end=ed&&et?ed+'T'+et+':00':'';
 if(start&&end&&new Date(start)>=new Date(end)){showToast('结束时间必须晚于开始时间');return}
 saveLotteryTimeData({start:start,end:end});
 loadLotteryTimeConfig();
@@ -1265,7 +1287,9 @@ startCountdown();
 function clearLotteryTime(){
 if(!confirm('确定清除抽奖时间限制？'))return;
 saveLotteryTimeData({start:'',end:''});
+document.getElementById('lotteryStartDate').value='';
 document.getElementById('lotteryStartTime').value='';
+document.getElementById('lotteryEndDate').value='';
 document.getElementById('lotteryEndTime').value='';
 loadLotteryTimeConfig();
 showToast('✅ 时间限制已清除');
