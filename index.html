@@ -1249,14 +1249,18 @@ function loadWebhookConfig(){const wh=loadWebhook();document.getElementById('web
 // ========== 抽奖时间配置 ==========
 function loadLotteryTimeConfig(){
 const cfg=loadLotteryTime();
+const startEl=document.getElementById('lotteryStartTime');
+const endEl=document.getElementById('lotteryEndTime');
 if(cfg.start){
   // datetime-local 格式: YYYY-MM-DDTHH:MM
-  const v=cfg.start.substring(0,16);
-  document.getElementById('lotteryStartTime').value=v;
+  startEl.value=cfg.start.substring(0,16);
+}else{
+  startEl.value='';
 }
 if(cfg.end){
-  const v=cfg.end.substring(0,16);
-  document.getElementById('lotteryEndTime').value=v;
+  endEl.value=cfg.end.substring(0,16);
+}else{
+  endEl.value='';
 }
 const statusEl=document.getElementById('lotteryTimeStatus');
 if(!cfg.start&&!cfg.end){if(statusEl)statusEl.textContent='当前无时间限制';}
