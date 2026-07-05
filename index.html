@@ -645,7 +645,44 @@ animation:subtitle-breathe 3s ease-in-out infinite;
   </div>
 </div>
 
-<script src="https://cdn.bootcdn.net/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(function() {
+  var xlsxCdnList = [
+    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+    'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+    'https://cdn.bootcdn.net/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
+  ];
+  var currentCdnIndex = 0;
+  window.XLSX_LOADING = true;
+  window.XLSX_LOADED = false;
+
+  function loadXlsx() {
+    if (currentCdnIndex >= xlsxCdnList.length) {
+      window.XLSX_LOADING = false;
+      console.error('所有 XLSX 库加载失败，所有 CDN 均不可用');
+      return;
+    }
+    var src = xlsxCdnList[currentCdnIndex];
+    var script = document.createElement('script');
+    script.src = src;
+    script.onload = function() {
+      if (typeof XLSX !== 'undefined') {
+        window.XLSX_LOADED = true;
+        window.XLSX_LOADING = false;
+        console.log('XLSX 库加载成功，来源:', src);
+      }
+    };
+    script.onerror = function() {
+      console.warn('XLSX 库加载失败，尝试下一个 CDN:', src);
+      currentCdnIndex++;
+      loadXlsx();
+    };
+    document.head.appendChild(script);
+  }
+  loadXlsx();
+})();
+</script>
 <script>
 // ========== 奖项配置（默认奖品，可通过后台增删改） ==========
 const DEFAULT_PRIZES=[
@@ -1301,7 +1338,6 @@ const isCSV=file.name.toLowerCase().endsWith('.csv');
 const isExcel=/\.(xlsx|xls)$/i.test(file.name);
 
 if(isCSV){
-// CSV 用文本方式读取
 const reader=new FileReader();
 reader.onload=function(e){
 try{
@@ -1312,16 +1348,37 @@ processRows(rows,statusEl,input);
 };
 reader.readAsText(file,'UTF-8');
 }else if(isExcel){
-// Excel 用 SheetJS 解析
+if(typeof XLSX==='undefined'){
+if(window.XLSX_LOADING){
+statusEl.textContent='⏳ Excel解析库正在加载中，请稍等几秒后重试';statusEl.style.color='#ffd700';
+input.value='';
+return;
+}
+statusEl.textContent='❌ Excel解析库加载失败，请检查网络连接后刷新页面，或改用CSV格式导入';statusEl.style.color='#e76f51';
+input.value='';
+return;
+}
 const reader=new FileReader();
 reader.onload=function(e){
 try{
 const data=new Uint8Array(e.target.result);
 const workbook=XLSX.read(data,{type:'array'});
+if(!workbook.SheetNames||workbook.SheetNames.length===0){
+statusEl.textContent='⚠️ Excel文件中没有找到工作表';statusEl.style.color='#e76f51';return;
+}
 const firstSheet=workbook.Sheets[workbook.SheetNames[0]];
 const jsonData=XLSX.utils.sheet_to_json(firstSheet,{header:1,defval:''});
 processRows(jsonData,statusEl,input);
-}catch(err){statusEl.textContent='❌ Excel解析失败: '+err.message;statusEl.style.color='#e76f51';}
+}catch(err){
+var msg=err.message||String(err);
+if(msg.indexOf('XLSX')>=0||msg.indexOf('undefined')>=0){
+msg='Excel解析库未正确加载，请刷新页面重试';
+}
+statusEl.textContent='❌ Excel解析失败: '+msg;statusEl.style.color='#e76f51';
+}
+};
+reader.onerror=function(){
+statusEl.textContent='❌ 文件读取失败，请检查文件是否损坏';statusEl.style.color='#e76f51';
 };
 reader.readAsArrayBuffer(file);
 }else{
@@ -1337,22 +1394,32 @@ let nameIdx=-1,phoneIdx=-1;
 const header=rows[0].map(function(c){return String(c).trim()});
 for(let i=0;i<header.length;i++){
 const h=header[i];
-if(/姓名|名字|name/i.test(h))nameIdx=i;
-if(/手机|电话|phone|tel/i.test(h))phoneIdx=i;
+if(/姓名|名字|name|员工姓名/i.test(h))nameIdx=i;
+if(/手机|电话|phone|tel|手机号|联系电话|联系方式/i.test(h))phoneIdx=i;
 }
 if(nameIdx===-1)nameIdx=0;
 if(phoneIdx===-1)phoneIdx=1;
 
-const startRow=(nameIdx>=0&&phoneIdx>=0&&rows[0][nameIdx]===header[nameIdx])?1:0;
+const startRow=(nameIdx>=0&&phoneIdx>=0)?1:0;
+let invalidCount=0;
 for(let i=startRow;i<rows.length;i++){
 const row=rows[i];
 if(!row||row.length<Math.max(nameIdx,phoneIdx)+1)continue;
 const name=row[nameIdx]?String(row[nameIdx]).trim():'';
-const phone=row[phoneIdx]?String(row[phoneIdx]).trim().replace(/\s/g,''):'';
+let phone=row[phoneIdx]?String(row[phoneIdx]).trim().replace(/\s/g,''):'';
+if(phone&&phone.indexOf('.')>0){
+phone=phone.split('.')[0];
+}
 if(name&&phone&&isValidPhone(phone)){whitelist.push({name:name,phone:phone})}
+else if(name||phone){invalidCount++}
 }
 
-if(whitelist.length===0){statusEl.textContent='⚠️ 未找到有效的姓名+手机号数据，请检查列名是否为「姓名」和「手机号」';statusEl.style.color='#e76f51';return}
+if(whitelist.length===0){
+var hint='';
+if(invalidCount>0)hint='（找到 '+invalidCount+' 条无效数据，请检查手机号格式）';
+statusEl.textContent='⚠️ 未找到有效的姓名+手机号数据，请检查列名是否为「姓名」和「手机号」'+hint;
+statusEl.style.color='#e76f51';return;
+}
 
 const existing=loadWhitelist();
 const map={};
@@ -1362,7 +1429,8 @@ whitelist.forEach(function(w){if(map[w.phone]){dup++}else{map[w.phone]=w}});
 const merged=Object.values(map);
 saveWhitelistData(merged);
 updateAdminPanel();
-statusEl.textContent='✅ 导入成功：新增 '+(merged.length-existing.length)+' 人，跳过重复 '+dup+' 人，共 '+merged.length+' 人';
+var extra=invalidCount>0?'，跳过无效 '+invalidCount+' 条':'';
+statusEl.textContent='✅ 导入成功：新增 '+(merged.length-existing.length)+' 人，跳过重复 '+dup+' 人'+extra+'，共 '+merged.length+' 人';
 statusEl.style.color='#81c784';
 showToast('✅ 导入成功 '+merged.length+' 人');
 input.value='';
@@ -1532,6 +1600,14 @@ showToast('✅ 同步完成：成功 '+success+' 条，失败 '+fail+' 条');
 
 // ========== 导出Excel（使用SheetJS） ==========
 function handleExportExcel(){
+if(typeof XLSX==='undefined'){
+if(window.XLSX_LOADING){
+showToast('⏳ Excel导出库正在加载中，请稍等几秒后重试');
+return;
+}
+showToast('❌ Excel导出库加载失败，请检查网络连接后刷新页面');
+return;
+}
 const data=loadData();const whitelist=loadWhitelist();
 if(data.records.length===0){showToast('暂无开奖记录可导出');return}
 
@@ -1554,7 +1630,6 @@ const ws=XLSX.utils.json_to_sheet(rows);
 const wb=XLSX.utils.book_new();
 XLSX.utils.book_append_sheet(wb,ws,'开奖记录');
 
-// 设置列宽
 ws['!cols']=[{wch:8},{wch:12},{wch:15},{wch:15},{wch:10},{wch:20},{wch:10},{wch:20}];
 
 XLSX.writeFile(wb,'穗华盲盒开奖记录_'+new Date().toISOString().split('T')[0]+'.xlsx');
