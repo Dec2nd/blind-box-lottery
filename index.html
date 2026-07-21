@@ -952,6 +952,32 @@ return{ok:true,msg:''};
 
 // ========== 员工端验证 ==========
 let currentUser=null;
+
+// 双字段白名单匹配：手机号 + 姓名同时一致
+function matchWhitelist(whitelist,name,phone){
+if(!whitelist||!whitelist.length)return null;
+const n=String(name||'').trim();
+const p=String(phone||'').trim().replace(/\s/g,'');
+for(let i=0;i<whitelist.length;i++){
+const w=whitelist[i];
+const wn=String(w.name||'').trim();
+const wp=String(w.phone||'').trim().replace(/\s/g,'');
+if(wp===p&&wn===n)return w;
+}
+return null;
+}
+
+function showAlreadyPage(record){
+var prizeName='';
+if(record&&record.prize_name)prizeName=record.prize_name;
+else if(record&&record.prize_id!==undefined){
+var p=PRIZES.find(function(pp){return pp.id===record.prize_id||pp.id===record.prizeId});
+if(p)prizeName=p.name;
+}
+document.getElementById('alreadyInfo').innerHTML='🎁 您已开过盲盒<br>获得：<strong style="color:var(--gold)">'+prizeName+'</strong>';
+showPage('already');
+}
+
 function handleVerify(){
 const phone=document.getElementById('userPhone').value.trim();
 const name=document.getElementById('userName').value.trim();
@@ -962,54 +988,37 @@ if(!isValidPhone(phone)){showToast('手机号格式不正确，请输入11位手
 const timeCheck=checkLotteryTime();
 if(!timeCheck.ok){showToast(timeCheck.msg);return}
 
-// 检查白名单开关
+// 检查白名单开关 + 双字段匹配
 const whitelistEnabled=loadWhitelistEnabled();
 if(whitelistEnabled){
 const whitelist=loadWhitelist();
-const winner=whitelist.find(function(w){return w.phone===phone});
-if(!winner){showToast('抱歉，您暂无抽奖资格');return}
+if(!whitelist||whitelist.length===0){showToast('白名单为空，请联系管理员配置');return}
+const winner=matchWhitelist(whitelist,name,phone);
+if(!winner){
+// 进一步判断：手机号在但姓名不一致，给出更精准提示
+const phoneOnly=whitelist.find(function(w){return String(w.phone||'').trim()===phone});
+if(phoneOnly){showToast('姓名与白名单不一致，请核对后重试');return}
+showToast('您不在本期白名单中');return;
+}
 }
 
-// 先查云端数据库（跨设备防重复）
+// 云端单一权威：仅查询 D1 records 表
 showToast('正在验证身份...');
 fetch(API_BASE+'/api/check',{
   method:'POST',
   headers:{'Content-Type':'application/json'},
   body:JSON.stringify({phone:phone})
-}).then(function(r){return r.json()}).then(function(cloudData){
-  if(cloudData.exists){
-    var prizeName='';
-    if(cloudData.record&&cloudData.record.prize_name) prizeName=cloudData.record.prize_name;
-    else{var p=PRIZES.find(function(pp){return pp.id===cloudData.record.prize_id});if(p)prizeName=p.name}
-    document.getElementById('alreadyInfo').innerHTML='🎁 您已开过盲盒<br>获得：<strong style="color:var(--gold)">'+prizeName+'</strong>';
-    showPage('already');return;
-  }
-  // 再查本地缓存
-  var data=loadData();
-  var records=data.records;
-  var already=records.find(function(r){return r.phone===phone});
-  if(already){
-    var p2=PRIZES.find(function(p){return p.id===already.prizeId});
-    document.getElementById('alreadyInfo').innerHTML='🎁 您已开过盲盒<br>获得：<strong style="color:var(--gold)">'+(p2?p2.name:'未知奖品')+'</strong>';
-    showPage('already');return;
-  }
+}).then(function(r){
+  if(!r.ok){throw new Error('HTTP '+r.status)}
+  return r.json();
+}).then(function(cloudData){
+  if(cloudData.exists){showAlreadyPage(cloudData.record);return}
   currentUser={name:name,phone:phone,dept:'',prizeId:null};
   document.getElementById('boxUserName').textContent=name;
   showPage('blindbox');
 }).catch(function(err){
-  // 云端不可用时降级到本地检查
-  console.warn('云端检查失败，降级到本地:',err);
-  var data=loadData();
-  var records=data.records;
-  var already=records.find(function(r){return r.phone===phone});
-  if(already){
-    var p3=PRIZES.find(function(p){return p.id===already.prizeId});
-    document.getElementById('alreadyInfo').innerHTML='🎁 您已开过盲盒<br>获得：<strong style="color:var(--gold)">'+(p3?p3.name:'未知奖品')+'</strong>';
-    showPage('already');return;
-  }
-  currentUser={name:name,phone:phone,dept:'',prizeId:null};
-  document.getElementById('boxUserName').textContent=name;
-  showPage('blindbox');
+  console.warn('云端验证失败:',err);
+  showToast('云端服务不可用，请稍后重试');
 });
 }
 
@@ -1939,20 +1948,33 @@ if(statusEl){
 showToast(fail===0?'✅ 所有设置已同步到云端':'⚠️ 同步完成：成功'+success+'项，失败'+fail+'项');
 }
 
-// ========== 一键清空开奖记录 ==========
+// ========== 一键清空开奖记录（开启新一轮） ==========
 function clearRecords(){
-if(!confirm('确定清空所有开奖记录？\n\n此操作不可撤销，所有员工将可以重新参与抽奖。\n白名单、时间设置、概率配置等其他设置不受影响。'))return;
-// 清空云端
+if(!confirm('确定清空所有开奖记录？\n\n⚠️ 此操作不可撤销，所有员工将可以重新参与抽奖。\n✅ 白名单、时间设置、概率配置等其他设置不受影响。'))return;
+// 二次确认
+if(!confirm('请再次确认：真的要清空云端全部开奖记录吗？'))return;
+const statusEl=document.getElementById('syncAllStatus');
+if(statusEl){statusEl.textContent='🔄 正在清空云端记录...';statusEl.style.color='#ffd700'}
+
 fetch(API_BASE+'/api/records',{
   method:'DELETE',
   headers:{'Authorization':'Bearer '+ADMIN_TOKEN}
-}).catch(function(err){console.warn('云端清空失败:',err)});
-// 清空本地
-const data=loadData();
-data.records=[];
-saveData(data);
-updateAdminPanel();
-showToast('✅ 开奖记录已清空（云端+本地），可重新开始');
+}).then(function(r){
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  return r.json();
+}).then(function(){
+  // 清空本地
+  const data=loadData();
+  data.records=[];
+  saveData(data);
+  updateAdminPanel();
+  if(statusEl){statusEl.textContent='✅ 已开启新一轮，所有白名单成员可重新参与';statusEl.style.color='#81c784'}
+  showToast('✅ 新一轮已开启');
+}).catch(function(err){
+  console.warn('云端清空失败:',err);
+  if(statusEl){statusEl.textContent='❌ 云端清空失败：'+err.message+'（请检查网络）';statusEl.style.color='#e76f51'}
+  showToast('❌ 云端清空失败，请检查网络');
+});
 }
 
 // ========== 页面加载时自动与云端同步 ==========
