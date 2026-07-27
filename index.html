@@ -1034,6 +1034,17 @@ if(isOpening)return;isOpening=true;
 const timeCheck=checkLotteryTime();
 if(!timeCheck.ok){showToast(timeCheck.msg);isOpening=false;return}
 
+// 提前抽取奖品并发起网络请求（与动画并行执行）
+const prize=drawPrizeByWeight();
+var prizeInfo=PRIZES.find(function(p){return p.id===prize.id})||prize;
+var record={name:currentUser.name,phone:currentUser.phone,dept:currentUser.dept,prizeId:prize.id,time:new Date().toLocaleString('zh-CN')};
+// 立即发起网络请求，与动画并行
+var recordPromise=fetch(API_BASE+'/api/record',{
+  method:'POST',
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({name:currentUser.name,phone:currentUser.phone,dept:currentUser.dept,prizeId:prize.id,prizeName:prizeInfo.name||''})
+}).then(function(r){return r.json().then(function(data){return{status:r.status,body:data}})});
+
 const w=document.getElementById('boxWrapper');const h=document.getElementById('boxHint');
 w.classList.add('shaking');h.textContent='✨ 正在拆开盲盒...';
 
@@ -1061,16 +1072,10 @@ setTimeout(function(){
 w.classList.remove('opening');
 raysEl.classList.remove('active');
 document.getElementById('boxFlash').classList.remove('active');
-const prize=drawPrizeByWeight();
-var prizeInfo=PRIZES.find(function(p){return p.id===prize.id})||prize;
-var record={name:currentUser.name,phone:currentUser.phone,dept:currentUser.dept,prizeId:prize.id,time:new Date().toLocaleString('zh-CN')};
-// 先提交到云端，等待响应
-fetch(API_BASE+'/api/record',{
-  method:'POST',
-  headers:{'Content-Type':'application/json'},
-  body:JSON.stringify({name:currentUser.name,phone:currentUser.phone,dept:currentUser.dept,prizeId:prize.id,prizeName:prizeInfo.name||''})
-}).then(function(r){return r.json().then(function(data){return{status:r.status,body:data}})})
-.then(function(res){
+// 动画结束，处理网络请求结果
+// 如果请求已完成则立即显示（零卡顿），未完成则显示提示
+h.textContent='正在确认结果...';
+recordPromise.then(function(res){
   if(res.status===201){
     // 成功：写入本地并显示中奖
     var data=loadData();
