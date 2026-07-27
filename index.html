@@ -1051,32 +1051,43 @@ triggerSparkleBurst();
 // 盲盒打开动画
 w.classList.add('opening');
 
-setTimeout(function(){
+setTimeout(async function(){
 w.classList.remove('opening');
 raysEl.classList.remove('active');
 document.getElementById('boxFlash').classList.remove('active');
 const prize=drawPrizeByWeight();
 var prizeInfo=PRIZES.find(function(p){return p.id===prize.id})||prize;
-// 同时写入云端数据库和本地缓存
 var record={name:currentUser.name,phone:currentUser.phone,dept:currentUser.dept,prizeId:prize.id,time:new Date().toLocaleString('zh-CN')};
-// 写入云端
-fetch(API_BASE+'/api/record',{
-  method:'POST',
-  headers:{'Content-Type':'application/json'},
-  body:JSON.stringify({name:currentUser.name,phone:currentUser.phone,dept:currentUser.dept,prizeId:prize.id,prizeName:prizeInfo.name||''})
-}).catch(function(err){console.warn('云端写入失败，仅保存本地:',err)});
-// 写入本地（作为缓存）
-var data=loadData();
-data.records.push(record);saveData(data);
-displayResult(prize);triggerConfetti();h.textContent='🎊 恭喜中奖！';isOpening=false;
-// 发送Webhook
-const wh=loadWebhook();
-if(wh.enabled&&wh.url){
-  setTimeout(function(){
-    sendWebhook(record).then(function(ok){
-      if(ok){console.log('✅ Webhook发送成功')}else{console.warn('⚠️ Webhook发送失败')}
-    }).catch(function(err){console.error('❌ Webhook异常:',err)})
-  },500)
+
+// 先写入云端，成功后才写本地
+try {
+  const resp = await fetch(API_BASE+'/api/record',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({name:currentUser.name,phone:currentUser.phone,dept:currentUser.dept,prizeId:prize.id,prizeName:prizeInfo.name||''})
+  });
+  if(!resp.ok){
+    const errData = await resp.json().catch(()=>({error:'云端返回错误'}));
+    throw new Error(errData.error || 'HTTP '+resp.status);
+  }
+  // 云端写入成功，再写本地
+  var data=loadData();
+  data.records.push(record);saveData(data);
+  displayResult(prize);triggerConfetti();h.textContent='🎊 恭喜中奖！';isOpening=false;
+  // 发送Webhook
+  const wh=loadWebhook();
+  if(wh.enabled&&wh.url){
+    setTimeout(function(){
+      sendWebhook(record).then(function(ok){
+        if(ok){console.log('✅ Webhook发送成功')}else{console.warn('⚠️ Webhook发送失败')}
+      }).catch(function(err){console.error('❌ Webhook异常:',err)})
+    },500)
+  }
+} catch(err) {
+  console.error('❌ 云端写入失败:', err);
+  showToast('❌ 云端写入失败：'+err.message+'，请联系管理员');
+  h.textContent='❌ 开奖失败，请重试';
+  isOpening=false;
 }
 },900);
 },1500);
