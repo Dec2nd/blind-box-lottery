@@ -876,20 +876,12 @@ countdownTimer=setInterval(updateCountdown,1000);
 }
 function updateCountdown(){
 const cfg=loadLotteryTime();
+let start=cfg.start,end=cfg.end;
+if(typeof start==='string'){start=start?new Date(start).getTime():0;}else if(start==null||start===''){start=0;}
+if(typeof start!=='number')start=0;
+if(typeof end==='string'){end=end?new Date(end).getTime():0;}else if(end==null||end===''){end=0;}
+if(typeof end!=='number')end=0;
 const now=Date.now();
-// Parse start/end as timestamps for consistency
-// Support both new number format (UTC timestamp) and old string format (local time string)
-let start=0, end=0;
-if (typeof cfg.start === 'string') {
-  start = cfg.start ? new Date(cfg.start).getTime() : 0;
-} else if (cfg.start != null && cfg.start !== '') {
-  start = Number(cfg.start);
-}
-if (typeof cfg.end === 'string') {
-  end = cfg.end ? new Date(cfg.end).getTime() : 0;
-} else if (cfg.end != null && cfg.end !== '') {
-  end = Number(cfg.end);
-}
 const statusEl=document.getElementById('countdownStatus');
 const titleEl=document.querySelector('.countdown-box .cd-title');
 
@@ -951,47 +943,17 @@ if(titleEl)titleEl.textContent='⏰ 抽奖活动进行中';
 }
 
 function checkLotteryTime(){
-  const cfg=loadLotteryTime();
-  // Handle both old string format and new timestamp format
-  let start = cfg.start;
-  let end = cfg.end;
-  
-  // Normalize to timestamps (number)
-  if (typeof start === 'string') {
-    // Old format: parse as local time (not UTC!)
-    start = start ? new Date(start).getTime() : 0;
-  } else if (start == null || start === '') {
-    start = 0;
-  }
-  // Ensure start is a number (already is from new format)
-  if (typeof start !== 'number') start = 0;
-  
-  if (typeof end === 'string') {
-    // Old format: parse as local time (not UTC!)
-    end = end ? new Date(end).getTime() : 0;
-  } else if (end == null || end === '') {
-    end = 0;
-  }
-  if (typeof end !== 'number') end = 0;
-  
-  // If both are 0 (empty), no time restriction
-  if(start === 0 && end === 0) return {ok:true,msg:''};
-  const now = Date.now();
-  if(start && now < start) return {ok:false,msg:'抽奖尚未开始，请耐心等待'};
-  if(end && now > end) return {ok:false,msg:'抽奖已结束，感谢参与'};
-  return {ok:true,msg:''};
-}
-  } else if (end == null || end === '') {
-    end = 0;
-  }
-  if (typeof end !== 'number') end = 0;
-  
-  // If both are 0 (empty), no time restriction
-  if(start === 0 && end === 0) return {ok:true,msg:''};
-  const now = Date.now();
-  if(start && now < start) return {ok:false,msg:'抽奖尚未开始，请耐心等待'};
-  if(end && now > end) return {ok:false,msg:'抽奖已结束，感谢参与'};
-  return {ok:true,msg:''};
+const cfg=loadLotteryTime();
+let start=cfg.start,end=cfg.end;
+if(typeof start==='string'){start=start?new Date(start).getTime():0;}else if(start==null||start===''){start=0;}
+if(typeof start!=='number')start=0;
+if(typeof end==='string'){end=end?new Date(end).getTime():0;}else if(end==null||end===''){end=0;}
+if(typeof end!=='number')end=0;
+if(start===0&&end===0)return{ok:true,msg:''};
+const now=Date.now();
+if(start&&now<start)return{ok:false,msg:'抽奖尚未开始，请耐心等待'};
+if(end&&now>end)return{ok:false,msg:'抽奖已结束，感谢参与'};
+return{ok:true,msg:''};
 }
 
 // ========== 员工端验证 ==========
@@ -1095,44 +1057,43 @@ triggerSparkleBurst();
 // 盲盒打开动画
 w.classList.add('opening');
 
-setTimeout(async function(){
+setTimeout(function(){
 w.classList.remove('opening');
 raysEl.classList.remove('active');
 document.getElementById('boxFlash').classList.remove('active');
 const prize=drawPrizeByWeight();
 var prizeInfo=PRIZES.find(function(p){return p.id===prize.id})||prize;
 var record={name:currentUser.name,phone:currentUser.phone,dept:currentUser.dept,prizeId:prize.id,time:new Date().toLocaleString('zh-CN')};
-
-// 先写入云端，成功后才写本地
-try {
-  const resp = await fetch(API_BASE+'/api/record',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({name:currentUser.name,phone:currentUser.phone,dept:currentUser.dept,prizeId:prize.id,prizeName:prizeInfo.name||''})
-  });
-  if(!resp.ok){
-    const errData = await resp.json().catch(()=>({error:'云端返回错误'}));
-    throw new Error(errData.error || 'HTTP '+resp.status);
+// 先提交到云端，等待响应
+fetch(API_BASE+'/api/record',{
+  method:'POST',
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({name:currentUser.name,phone:currentUser.phone,dept:currentUser.dept,prizeId:prize.id,prizeName:prizeInfo.name||''})
+}).then(function(r){return r.json().then(function(data){return{status:r.status,body:data}})})
+.then(function(res){
+  if(res.status===201){
+    // 成功：写入本地并显示中奖
+    var data=loadData();
+    data.records.push(record);saveData(data);
+    displayResult(prize);triggerConfetti();h.textContent='🎊 恭喜中奖！';
+    // 发送Webhook
+    const wh=loadWebhook();
+    if(wh.enabled&&wh.url){
+      setTimeout(function(){sendWebhook(record).then(function(ok){}).catch(function(err){})},500)
+    }
+  }else{
+    // 后端拒绝：显示错误，不写入本地
+    var errMsg=res.body&&res.body.error?res.body.error:'提交失败，请稍后重试';
+    showToast(errMsg);
+    h.textContent='❌ '+errMsg;
   }
-  // 云端写入成功，再写本地
-  var data=loadData();
-  data.records.push(record);saveData(data);
-  displayResult(prize);triggerConfetti();h.textContent='🎊 恭喜中奖！';isOpening=false;
-  // 发送Webhook
-  const wh=loadWebhook();
-  if(wh.enabled&&wh.url){
-    setTimeout(function(){
-      sendWebhook(record).then(function(ok){
-        if(ok){console.log('✅ Webhook发送成功')}else{console.warn('⚠️ Webhook发送失败')}
-      }).catch(function(err){console.error('❌ Webhook异常:',err)})
-    },500)
-  }
-} catch(err) {
-  console.error('❌ 云端写入失败:', err);
-  showToast('❌ 云端写入失败：'+err.message+'，请联系管理员');
-  h.textContent='❌ 开奖失败，请重试';
   isOpening=false;
-}
+}).catch(function(err){
+  console.warn('云端提交失败:',err);
+  showToast('网络异常，请重试');
+  h.textContent='❌ 网络异常，请重试';
+  isOpening=false;
+});
 },900);
 },1500);
 }
@@ -1349,53 +1310,39 @@ function loadWebhookConfig(){const wh=loadWebhook();document.getElementById('web
 
 // ========== 抽奖时间配置 ==========
 function loadLotteryTimeConfig(){
-  const cfg=loadLotteryTime();
-  const startEl=document.getElementById('lotteryStartTime');
-  const endEl=document.getElementById('lotteryEndTime');
-  
-  // Helper: Convert UTC timestamp (number) to local datetime-local format string
-  function utcTsToDatetimeLocal(ts) {
-    if (ts == null || ts === '' || ts === 0 || ts === undefined) return '';
-    // If it's a string (old format), return as-is (already in YYYY-MM-DDTHH:MM local format)
-    if (typeof ts === 'string') return ts;
-    // If it's a number (UTC timestamp), convert to local datetime string
-    const date = new Date(ts);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hour = String(date.getHours()).padStart(2, '0');
-    const minute = String(date.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hour}:${minute}`;
-  }
-  
-  startEl.value = utcTsToDatetimeLocal(cfg.start);
-  endEl.value = utcTsToDatetimeLocal(cfg.end);
-  
-  const statusEl=document.getElementById('lotteryTimeStatus');
-  const startEmpty = cfg.start == null || cfg.start === '' || cfg.start === 0;
-  const endEmpty = cfg.end == null || cfg.end === '' || cfg.end === 0;
-  if(startEmpty && endEmpty){
-    if(statusEl)statusEl.textContent='当前无时间限制';
-  } else {
-    const startStr = startEmpty ? '未设置' : (typeof cfg.start === 'number' ? new Date(cfg.start).toLocaleString('zh-CN') : cfg.start);
-    const endStr = endEmpty ? '未设置' : (typeof cfg.end === 'number' ? new Date(cfg.end).toLocaleString('zh-CN') : cfg.end);
-    if(statusEl)statusEl.textContent='开始：'+startStr+' | 结束：'+endStr;
-  }
+const cfg=loadLotteryTime();
+const startEl=document.getElementById('lotteryStartTime');
+const endEl=document.getElementById('lotteryEndTime');
+function tsToLocal(ts){
+if(ts==null||ts===''||ts===0)return'';
+if(typeof ts==='string')return ts.substring(0,16);
+const d=new Date(ts);
+const y=d.getFullYear();
+const mo=String(d.getMonth()+1).padStart(2,'0');
+const da=String(d.getDate()).padStart(2,'0');
+const h=String(d.getHours()).padStart(2,'0');
+const mi=String(d.getMinutes()).padStart(2,'0');
+return y+'-'+mo+'-'+da+'T'+h+':'+mi;
+}
+startEl.value=tsToLocal(cfg.start);
+endEl.value=tsToLocal(cfg.end);
+const statusEl=document.getElementById('lotteryTimeStatus');
+const sEmpty=cfg.start==null||cfg.start===''||cfg.start===0;
+const eEmpty=cfg.end==null||cfg.end===''||cfg.end===0;
+if(sEmpty&&eEmpty){if(statusEl)statusEl.textContent='当前无时间限制';}
+else{const sStr=sEmpty?'未设置':new Date(typeof cfg.start==='number'?cfg.start:cfg.start).toLocaleString('zh-CN');const eStr=eEmpty?'未设置':new Date(typeof cfg.end==='number'?cfg.end:cfg.end).toLocaleString('zh-CN');if(statusEl)statusEl.textContent='开始：'+sStr+' | 结束：'+eStr;}
 }
 
 function saveLotteryTime(){
-  const start=document.getElementById('lotteryStartTime').value;
-  const end=document.getElementById('lotteryEndTime').value;
-  // Parse datetime-local strings as local time and convert to UTC timestamps
-  // This ensures consistent time handling regardless of user's local timezone
-  const startTs = start ? new Date(start).getTime() : 0;
-  const endTs = end ? new Date(end).getTime() : 0;
-  // Validation: if both are set, end must be after start
-  if(start && end && startTs >= endTs){showToast('结束时间必须晚于开始时间');return}
-  saveLotteryTimeData({start:startTs,end:endTs});
-  loadLotteryTimeConfig();
-  showToast('✅ 抽奖时间已保存');
-  startCountdown();
+const start=document.getElementById('lotteryStartTime').value;
+const end=document.getElementById('lotteryEndTime').value;
+const startTs=start?new Date(start).getTime():0;
+const endTs=end?new Date(end).getTime():0;
+if(start&&end&&startTs>=endTs){showToast('结束时间必须晚于开始时间');return}
+saveLotteryTimeData({start:startTs,end:endTs});
+loadLotteryTimeConfig();
+showToast('✅ 抽奖时间已保存');
+startCountdown();
 }
 
 function clearLotteryTime(){
